@@ -20,7 +20,7 @@ router.put("/edit/:adminId/:courtId", upload.array("files"), editCourt);
 
 router.get("/fetch/:courtId", fetchCourtWithCourtId);
 
-router.post("/fetch/all/:location", fetchCourtsWithLocation);
+router.get("/fetch/all/:location", fetchCourtsWithLocation);
 
 router.get("/getLocations", getLocations);
 
