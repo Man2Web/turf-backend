@@ -1,15 +1,22 @@
 const db = require("../../config/database");
+const getCourtByUid = require("./getCourtIdByUid");
 
 const courtAvailability = async (req, res) => {
   const { courtId, date } = req.params; // Expecting the date in YYYY-MM-DD format
   //   console.log(date); // Corrected console.log to output the date for debugging
 
   try {
+    const court_id = await getCourtByUid(courtId);
+
+    if (!court_id) {
+      return res.status(404).json({ message: "Court Not found" });
+    }
+
     const availabilityQuery =
       "SELECT * FROM bookings WHERE booking_date = $1 AND court_id = $2";
     const availabilityCheck = await db.query(availabilityQuery, [
       date,
-      courtId,
+      court_id,
     ]);
 
     if (availabilityCheck.rows.length === 0) {

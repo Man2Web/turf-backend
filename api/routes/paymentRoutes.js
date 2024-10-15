@@ -9,6 +9,7 @@ const { bookingDetails } = require("../models/payment/bookingDetails");
 const formatTime = require("../services/formatTime");
 const formatDate = require("../services/formatDate");
 const getSlotDurationInHrs = require("../services/getSlotDuration");
+const getCourtByUid = require("../controllers/court/getCourtIdByUid");
 const router = express.Router();
 
 const demo_merchant_Id = "PGTESTPAYUAT86"; // Example Merchant ID
@@ -81,6 +82,11 @@ router.post("/", async (req, res) => {
   const salt_key = "96434309-7796-489d-8924-ab56988a6076"; // Example Salt Key
   //   "96434309-7796-489d-8924-ab56988a6076"
   try {
+    court__id = await getCourtByUid(courtId);
+    if (!court__id) {
+      return res.status(404).json({ message: "Court not found" });
+    }
+
     // // First, fetch the user_id associated with the court_id from the courts table
     // const userIdQuery = `
     //   SELECT user_id

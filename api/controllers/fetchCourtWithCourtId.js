@@ -10,111 +10,54 @@ const fetchCourtWithCourtId = async (req, res) => {
   }
 
   try {
-    // Fetch the court associated with the courtId
-    const courtQuery = "SELECT * FROM courts WHERE id = $1 AND approved = TRUE";
-    const courtResult = await db.query(courtQuery, [courtId]);
-    // console.log(courtResult.rows[0].user_id)
-    adminId = courtResult.rows[0].user_id;
-
-    if (courtResult.rows.length === 0) {
-      return res.status(404).json({ message: "No court found for this ID" });
+    // get the id of the court.
+    const getCourtId = await db.query(
+      "SELECT * FROM courts WHERE court_id = $1 AND approved = TRUE",
+      [courtId]
+    );
+    const court__Id = getCourtId.rows[0].id;
+    if (!court__Id) {
+      return res.status(404).json({ message: "Court not found" });
     }
 
-    const court = courtResult.rows[0];
-    const {
-      court_name,
-      court_type,
-      venue_overview,
-      rules_of_venue,
-      id: court_id,
-      phone_number,
-      email,
-      m_name,
-    } = court;
-
-    // Fetch the location details
-    const locationQuery = "SELECT * FROM locations WHERE court_id = $1";
-    const locationResult = await db.query(locationQuery, [court_id]);
-
-    const locationData = locationResult.rows[0] || {};
-    const {
-      country = null,
-      city = null,
-      location_link = null,
-      embed_link = null,
-    } = locationData;
-
-    // Fetch the pricing details
-    const pricingQuery = "SELECT * FROM venue_price WHERE court_id = $1";
-    const pricingResult = await db.query(pricingQuery, [court_id]);
-
-    const pricingData = pricingResult.rows[0] || {};
-    const {
-      starting_price = null,
-      max_guests = null,
-      additional_guests = null,
-      price_of_additional_guests = null,
-      advance_pay = null,
-    } = pricingData;
+    const getCourtDataQuery = await db.query(
+      `SELECT courts.id, courts.*, 
+        jsonb_build_object('city', locations.city, 'country', locations.country, 'location_link', locations.location_link, 'embed_link', locations.embed_link) AS locationData,
+        jsonb_build_object('starting_price', venue_price.starting_price, 'max_guests', venue_price.max_guests, 'additional_guests', venue_price.additional_guests, 'price_of_additional_guests', venue_price.price_of_additional_guests, 'advance_pay', venue_price.advance_pay) AS venuePrice,
+        jsonb_build_object('parking', amenities.parking, 'drinking_water', amenities.drinking_water, 'first_aid', amenities.first_aid, 'change_room', amenities.change_room, 'shower', amenities.shower) AS amenities,
+        jsonb_build_object('badminton_racket', court_includes.badminton_racket, 'bats', court_includes.bats, 'hitting_machines', court_includes.hitting_machines, 'multiple_courts', court_includes.multiple_courts, 'spare_players', court_includes.spare_players, 'instant_racket', court_includes.instant_racket, 'green_turfs', court_includes.green_turfs) AS courtIncludes
+      FROM courts
+      INNER JOIN locations ON courts.id = locations.court_id
+      INNER JOIN venue_price ON courts.id = venue_price.court_id
+      INNER JOIN amenities ON courts.id = amenities.court_id
+      INNER JOIN court_includes ON courts.id = court_includes.court_id
+      WHERE courts.id = $1`,
+      [court__Id]
+    );
+    console.log(getCourtDataQuery.rows);
 
     // Fetch the court availability time slots
     const timeSlotQuery =
       "SELECT * FROM court_availability WHERE court_id = $1";
-    const timeSlotResult = await db.query(timeSlotQuery, [court_id]);
+    const timeSlotResult = await db.query(timeSlotQuery, [court__Id]);
     const timeSlotsData = timeSlotResult.rows;
     const filteredTimeSlots = timeSlotsData.map(
       ({ id, court_id, ...rest }) => rest
     );
 
-    // Fetch the amenities of the court
-    const amenitiesQuery = "SELECT * FROM amenities WHERE court_id = $1";
-    const amenitiesResult = await db.query(amenitiesQuery, [court_id]);
-    const amenitiesData = amenitiesResult.rows[0] || {};
-
-    // Fetch the includes of the court
-    const includesQuery = "SELECT * FROM court_includes WHERE court_id = $1";
-    const includesResult = await db.query(includesQuery, [court_id]);
-    const includesData = includesResult.rows[0] || {};
+    // console.log(timeSlotsData);
 
     // Fetch the court images
     const imagesQuery = "SELECT * FROM court_images WHERE court_id = $1";
-    const imagesResult = await db.query(imagesQuery, [court_id]);
+    const imagesResult = await db.query(imagesQuery, [court__Id]);
 
-    const baseUrl = `${req.protocol}://${req.get(
-      "host"
-    )}/court/uploads/${adminId}/${courtId}`;
-    const images = imagesResult.rows.map((image) => {
-      const cleanedImageUrl = image.image_url.replace(/^\/?uploads\//, "");
-      return `${baseUrl}/${cleanedImageUrl}`;
-    });
+    // console.log(imagesResult.rows);
 
     // Build the court object with all related data
     const courtData = {
-      court_id,
-      court_name,
-      court_type,
-      venue_overview,
-      rules_of_venue,
-      phone_number,
-      m_name,
-      email,
-      location: {
-        country,
-        city,
-        location_link,
-        embed_link,
-      },
+      ...getCourtDataQuery.rows[0],
       time_Slots: filteredTimeSlots,
-      amenities: amenitiesData,
-      includes: includesData,
-      pricing: {
-        starting_price,
-        max_guests,
-        additional_guests,
-        price_of_additional_guests,
-        advance_pay,
-      },
-      images,
+      images: imagesResult.rows,
     };
 
     // Send back the court data
