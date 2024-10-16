@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Court Booking Details</title>
+
+    <!-- Bootstrap CDN for email or EJS rendering -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+
+    <style>
+      body {
+        background-color: #f4f4f4;
+        font-family: "Outfit", sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+
+      .email-container {
+        max-width: 800px;
+        margin: 0 auto;
+        background-color: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .email-header {
+        padding: 20px;
+        background-color: #ffffff;
+        text-align: center;
+        border-bottom: 1px solid #ddd;
+      }
+
+      .badge-success {
+        background-color: #1cc88a;
+        color: white;
+        padding: 5px 10px;
+        font-size: 14px;
+        border-radius: 5px;
+        display: inline-block;
+      }
+      
+      .badge-gray {
+        background-color: #808080;
+        color: white;
+        padding: 5px 10px;
+        font-size: 14px;
+        border-radius: 5px;
+        display: inline-block;
+      }
+
+      .email-body {
+        padding: 20px;
+      }
+
+      h4 {
+        margin-bottom: 20px;
+        color: #333;
+      }
+
+      p {
+        font-size: 14px;
+        margin: 0 0 10px 0;
+        color: #333;
+      }
+
+      .green {
+        color: #1cc88a;
+        font-weight: 600;
+      }
+
+      .card {
+        margin-bottom: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+      }
+
+      .card-header {
+        padding: 15px;
+        background-color: #ffffff;
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+        border-bottom: 1px solid #ddd;
+      }
+
+      .appointment-info {
+        padding: 15px;
+      }
+
+@media (max-width: 768px) {
+  .email-container {
+    width: 100%;
+    padding: 0; /* Optional: to ensure no extra padding */
+    margin: 0 auto; /* Center the container if needed */
+  }
+}
+    </style>
+  </head>
+
+  <body>
+    <div class="email-container">
+      <!-- Header Section -->
+      <div class="email-header">
+        <h4>
+          Booking Confirmation
+          <span class="badge badge-gray">#<%= transaction_id %></span>
+          <span class="badge badge-success">Paid</span>
+        </h4>
+      </div>
+
+      <!-- Body Section -->
+      <div class="email-body">
+        <!-- Court Information -->
+            <div class="card">
+            <div class="card-header">Court Information</div>
+                <!-- Court Information -->
+                <div class="appointment-info row">
+                <div class="col-12 col-md-4">
+                    <h6>Court Name</h6>
+                    <p><%= court_name %></p>                  
+                </div>
+                <div class="col-12 col-md-4">
+                    <h6>Court ID</h6>
+                    <p><%= court__id %></p>                  
+                </div>
+                </div>
+
+                <!-- Court Information -->
+                <div class="appointment-info row">
+                <div class="col-12 col-md-4">
+                    <h6>Court Email</h6>
+                    <p><%= court_email %></p>                  
+                </div>
+                <div class="col-12 col-md-4">
+                    <h6>Court Number</h6>
+                    <p><%= court_number %></p>                  
+                </div>
+                <div class="col-12 col-md-4">
+                    <h6>Court Location</h6>
+                    <p><%= locationLink %></p>                  
+                </div>
+                </div>
+
+
+                <!-- Player Information -->
+                <div class="card">
+                <div class="card-header">Player Information</div>
+                <div class="appointment-info row">
+                    <div class="col-12 col-md-6 col-lg-3">
+                    <h6>Player Name</h6>
+                    <p><%= fName %> <%= lName %></p>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-3">
+                    <h6>Player Number</h6>
+                    <p><%= phoneNumber %></p>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-3">
+                    <h6>Guests</h6>
+                    <p><%= numberOfGuests %></p>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-3">
+                    <% if (additionalNumberOfGuests) { %>
+                    <h6>Additional Guests</h6>
+                    <p><%= additionalNumberOfGuests %></p>
+                    <% } %>
+                    </div>
+                </div>
+                </div>
+
+
+                <!-- Appointment Information -->
+                <div class="card">
+                <div class="card-header">Appointment Information</div>
+                <% selected_slots.forEach(function(slot) { %>
+                <% const slotTime = slot.slot.time + ":00" %>
+                <div class="appointment-info row">
+                    <div class="col-12 col-md-3">
+                    <h6>Booking Date</h6>
+                    <p><%= formatDate(slot.data) %></p>
+                    </div>
+                    <div class="col-12 col-md-3">
+                    <h6>Booked Slots</h6>
+                    <p><%= formatTime(slotTime) %></p>
+                    </div>
+                    <div class="col-12 col-md-3">
+                    <h6>Booked Slots</h6>
+                    <p><%= getSlotDurationInHrs(slotTime, court_duration) %></p>
+                    </div>
+                    <div class="col-12 col-md-3">
+                    <h6>Booked On</h6>
+                    <p><%= formatDate(slotDate) %></p>
+                    </div>
+                </div>
+                <% }); %>
+                </div>
+
+
+                <!-- Payment Details -->
+                <div class="card">
+                <div class="card-header">Payment Details</div>
+                <div class="appointment-info">
+                    
+                    <!-- First Row -->
+                    <div class="row">
+                    <div class="col-12 col-md-4">
+                        <h6>Total Amount Paid</h6>
+                        <p class="green">₹<%= total_price %></p>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <h6>Service Charge</h6>
+                        <p>₹<%= serviceCharge %></p>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <h6>Transaction ID</h6>
+                        <p><%= transaction_id %></p>
+                    </div>
+                    </div>
+
+                    <!-- Second Row (Optional PG Transaction ID) -->
+                    <% if (pg_TID) { %>
+                    <div class="row">
+                    <div class="col-12 col-md-4">
+                        <h6>PG Transaction ID</h6>
+                        <p><%= pg_TID %></p>
+                    </div>
+                    </div>
+                    <% } %>
+
+                    <!-- Third Row -->
+                    <div class="row">
+                    <% if (paymentType) { %>
+                    <div class="col-12 col-md-4">
+                        <h6>Payment Type</h6>
+                        <p><%= paymentType %></p>
+                    </div>
+                    <% } %>
+
+                    <% if (cardType) { %>
+                    <div class="col-12 col-md-4">
+                        <h6>Card Type</h6>
+                        <p><%= cardType %></p>
+                    </div>
+                    <% } %>
+
+                    <% if (bankId) { %>
+                    <div class="col-12 col-md-4">
+                        <h6>Bank ID</h6>
+                        <p><%= bankId %></p>
+                    </div>
+                    <% } %>
+                    </div>
+
+                </div>
+                </div>
+
+            </div>
+        </div>
+    </body>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</html>

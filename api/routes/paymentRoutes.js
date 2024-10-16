@@ -186,8 +186,6 @@ router.post("/", async (req, res) => {
       requestData
     );
 
-    console.log(response);
-
     // Return the response from PhonePe API to the client
     return res.status(200).json(response);
   } catch (error) {
@@ -202,7 +200,6 @@ router.post("/", async (req, res) => {
 router.post("/status", async (req, res) => {
   const merchantTransactionId = req.query.id;
   const merchantId = demo_merchant_Id;
-  console.log(user_details, selected_date, selected_slots);
 
   const keyIndex = 1;
   const string =
@@ -232,127 +229,85 @@ router.post("/status", async (req, res) => {
       const bankId = response.data.data.paymentInstrument.bankId;
 
       if (response.data.success === true) {
-        const userDetailsQuery = `
-              INSERT INTO booking_details (fName, lName, phone_number, email, location, city, country, pincode, guests, add_guests, payment_type, pg_tid, card_type, bank_id, state)
-              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-              RETURNING id;
-            `;
+        const client = await db.pool.connect();
 
-        const userDetailsValues = [
-          user_details.fName,
-          user_details.lName,
-          user_details.phonenumber,
-          user_details.email,
-          user_details.address,
-          user_details.city,
-          user_details.country,
-          user_details.pincode,
-          user_details.numberOfGuests,
-          user_details.additionalNumberOfGuests,
-          paymentType,
-          pg_TID,
-          cardType,
-          bankId,
-          user_details.state,
-        ];
+        try {
+          await client.query("BEGIN");
 
-        const result = await db.query(userDetailsQuery, userDetailsValues);
-        const bookingDetailsId = result.rows[0].id;
-
-        const courtQuery = "SELECT * FROM courts WHERE id = $1";
-        const courtResult = await db.query(courtQuery, [court__id]);
-        const court = courtResult.rows[0];
-
-        console.log(court);
-        const {
-          court_name,
-          user_id,
-          court_type,
-          venue_overview,
-          rules_of_venue,
-          id: court_id,
-        } = court;
-        const adminId = court.user_id;
-
-        let timeSlots = "";
-
-        // Insert each selected slot into the bookings table
-        for (const slot of selected_slots) {
-          const timeInHHMMSS = `${slot.slot.time}:00`; // Append ':00' to convert to 'HH:MM:SS'
-
-          const startMoment = moment(timeInHHMMSS, "HH:mm:ss");
-
-          const endMoment = startMoment.clone().add(court_duration, "hours");
-
-          const formattedStartTime = startMoment.format("hh:mm A");
-
-          const formattedEndTime = endMoment.format("hh:mm A");
-
-          const timeSlot = `${formattedStartTime} - ${formattedEndTime},`;
-
-          timeSlots += timeSlot;
-
-          const bookingQuery = `
-                INSERT INTO bookings (admin_id, court_id, booking_date, booking_time, user_id, transaction_id, booking_detail_id, amount_paid, duration, pay_required, payment_mode)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);
+          const userDetailsQuery = `
+                INSERT INTO booking_details (fName, lName, phone_number, email, location, city, country, pincode, guests, add_guests, payment_type, pg_tid, card_type, bank_id, state)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+                RETURNING id;
               `;
 
-          const bookingValues = [
-            adminId,
-            court__id,
-            slot.date, // Assuming selected_date is in the correct date format
-            timeInHHMMSS, // slot.time should be in 'HH:MM:SS' format
-            userId, // If user_id is undefined, it will insert NULL
-            transaction_id,
-            bookingDetailsId,
-            Number(total_price),
-            court_duration,
-            Number(tobePaid),
-            true, // payment mode set to true for online
-          ];
-
-          await db.query(bookingQuery, bookingValues);
-          const insertedId = result.rows[0].id;
-        }
-
-        const slotDate = formatDate(selected_date);
-
-        const bookingDetailsValues = {
-          fName: userDetailsValues[0],
-          lName: userDetailsValues[1],
-          phoneNumber: userDetailsValues[2],
-          email: userDetailsValues[3],
-          address: userDetailsValues[4],
-          city: userDetailsValues[5],
-          country: userDetailsValues[6],
-          pincode: userDetailsValues[7],
-          numberOfGuests: userDetailsValues[8],
-          additionalNumberOfGuests: userDetailsValues[9],
-          paymentType: userDetailsValues[10],
-          pg_TID: userDetailsValues[11],
-          cardType: userDetailsValues[12],
-          bankId: userDetailsValues[13],
-        };
-
-        if (user_details.email) {
-          await bookingDetails(
-            bookingDetailsValues,
-            slotDate,
-            timeSlots,
-            court_name,
-            court__id,
-            court_duration,
-            total_price,
-            transaction_id,
+          const userDetailsValues = [
+            user_details.fName,
+            user_details.lName,
+            user_details.phonenumber,
+            user_details.email,
+            user_details.address,
+            user_details.city,
+            user_details.country,
+            user_details.pincode,
+            user_details.numberOfGuests,
+            user_details.additionalNumberOfGuests,
             paymentType,
             pg_TID,
             cardType,
-            bankId
-          );
-        }
+            bankId,
+            user_details.state,
+          ];
 
-        const url = `${process.env.WEBSITE_URL}booking/success/${transaction_id}`;
-        return res.redirect(url);
+          const result = await db.query(userDetailsQuery, userDetailsValues);
+          const bookingDetailsId = result.rows[0].id;
+
+          const courtQuery = "SELECT * FROM courts WHERE id = $1";
+          const courtResult = await db.query(courtQuery, [court__id]);
+          const court = courtResult.rows[0];
+
+          const adminId = court.user_id;
+
+          // Insert each selected slot into the bookings table
+          for (const slot of selected_slots) {
+            const timeInHHMMSS = `${slot.slot.time}:00`;
+
+            const bookingQuery = `
+                  INSERT INTO bookings (admin_id, court_id, booking_date, booking_time, user_id, transaction_id, booking_detail_id, amount_paid, duration, pay_required, payment_mode)
+                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);
+                `;
+
+            const bookingValues = [
+              adminId,
+              court__id,
+              slot.date, // Assuming selected_date is in the correct date format
+              timeInHHMMSS, // slot.time should be in 'HH:MM:SS' format
+              userId, // If user_id is undefined, it will insert NULL
+              transaction_id,
+              bookingDetailsId,
+              Number(total_price),
+              court_duration,
+              Number(tobePaid),
+              true, // payment mode set to true for online
+            ];
+
+            await db.query(bookingQuery, bookingValues);
+          }
+
+          await client.query("COMMIT");
+
+          if (user_details.email) {
+            await bookingDetails(transaction_id);
+          }
+
+          const url = `${process.env.WEBSITE_URL}booking/success/${transaction_id}`;
+          return res.redirect(url);
+        } catch (error) {
+          await client.query("ROLLBACK");
+          console.log(error);
+          res.status(500).json({ message: "Internal Server Error" });
+        } finally {
+          client.release();
+        }
       } else {
         const url = `${process.env.WEBSITE_URL}booking/failure`;
         return res.redirect(url);
@@ -368,7 +323,7 @@ router.post("/admin", async (req, res) => {
 
   try {
     // Correcting destructuring to match req.body keys
-    const {
+    let {
       userDetails, // This matches the "userDetails" key in the request body
       selectedDate, // This matches "selectedDate"
       selectedSlots, // This matches "selectedSlots"
@@ -378,6 +333,10 @@ router.post("/admin", async (req, res) => {
       user_id: userId, // "user_id" is renamed to "userId" for usage
       courtDuration,
     } = req.body;
+
+    court__id = await getCourtByUid(court__id);
+
+    console.log(court__id);
 
     court_duration = courtDuration;
     // console.log(userDetails, selectedDate, selectedSlots);
@@ -455,7 +414,9 @@ router.post("/admin", async (req, res) => {
 
       await db.query(bookingQuery, bookingValues);
     }
-    return res.status(200).json({ message: "Booking Successful" });
+    return res
+      .status(200)
+      .json({ message: "Booking Successful", transaction_id: transaction_id });
   } catch (error) {
     console.error(error);
     return res.status(404).json({ message: "Booking Failed" });

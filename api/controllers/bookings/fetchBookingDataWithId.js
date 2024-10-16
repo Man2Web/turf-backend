@@ -10,7 +10,7 @@ const fetchBookingDataWithId = async (req, res) => {
     `;
     const bookingExistsRes = await db.query(bookingExistsQuery, [t_id]);
 
-    console.log(bookingExistsRes.rows);
+    // console.log(bookingExistsRes.rows);
 
     if (bookingExistsRes.rows.length === 0) {
       return res.status(404).json({ message: "No Booking Data found" });

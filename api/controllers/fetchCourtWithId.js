@@ -1,4 +1,5 @@
 const db = require("../config/database");
+const getCourtByUid = require("./court/getCourtIdByUid");
 
 const fetchCourtWithId = async (req, res) => {
   const { adminId, courtId } = req.params;
@@ -8,9 +9,12 @@ const fetchCourtWithId = async (req, res) => {
   }
 
   try {
+    // Fetch Court ID.
+    const court__id = await getCourtByUid(courtId);
+
     // Fetch the court associated with the adminId and courtId
     const courtQuery = "SELECT * FROM courts WHERE user_id = $1 AND id = $2";
-    const courtResult = await db.query(courtQuery, [adminId, courtId]);
+    const courtResult = await db.query(courtQuery, [adminId, court__id]);
 
     if (courtResult.rows.length === 0) {
       return res.status(404).json({ message: "No court found for this user" });
@@ -95,18 +99,6 @@ const fetchCourtWithId = async (req, res) => {
       return res.status(404).json({ message: "Images not found" });
     }
 
-    // Use a base URL or relative path for images
-    const baseUrl = `${req.protocol}://${req.get(
-      "host"
-    )}/admin/uploads/${adminId}/${courtId}`;
-
-    // Assuming image.image_url might include "/uploads/", we need to clean it up.
-    const images = imagesResult.rows.map((image) => {
-      // Remove any leading "/uploads/" from image_url
-      const cleanedImageUrl = image.image_url.replace(/^\/?uploads\//, ""); // Strips 'uploads/' from the beginning
-      return `${baseUrl}/${cleanedImageUrl}`;
-    });
-
     // Build the court object with all related data
     const courtData = {
       court_id,
@@ -131,7 +123,7 @@ const fetchCourtWithId = async (req, res) => {
         additional_guests,
         price_of_additional_guests,
       },
-      images,
+      images: imagesResult.rows,
     };
 
     // Send back the court data
