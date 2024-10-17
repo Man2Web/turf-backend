@@ -120,7 +120,7 @@ router.post("/", async (req, res) => {
     // const merchantId = mIdResult.rows[0].m_id;
     const merchantId = demo_merchant_Id;
 
-    console.log(merchantId);
+    // console.log(merchantId);
 
     // Prepare data for PhonePe API request
     const merchant_id = merchantId;
@@ -185,6 +185,23 @@ router.post("/", async (req, res) => {
       headers,
       requestData
     );
+
+    // const options = {
+    //   method: "POST",
+    //   url: prod_URL,
+    //   headers: {
+    //     accept: "application/json",
+    //     "content-type": "application/json",
+    //     "X-VERIFY": checksum,
+    //   },
+    //   data: {
+    //     payloadMain,
+    //   },
+    // };
+
+    // await axios.post(options).then((response) => {
+    //   res.status(200).json(response.data);
+    // });
 
     // Return the response from PhonePe API to the client
     return res.status(200).json(response);

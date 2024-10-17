@@ -1,13 +1,13 @@
 const nodemailer = require("nodemailer");
 const ejs = require("ejs");
 const path = require("path");
-const axios = require("axios");
+var html_to_pdf = require("html-pdf-node");
 const db = require("../../config/database");
 const formatDate = require("../../services/formatDate");
 const formatTime = require("../../services/formatTime");
 const getSlotDurationInHrs = require("../../services/getSlotDuration");
 
-const bookingDetails = async (transaction_id) => {
+const bookingDetails = async (transaction_id, pdf) => {
   const templatePath = path.join(
     __dirname,
     "../../types/emailConfirmation.ejs"
@@ -50,7 +50,11 @@ const bookingDetails = async (transaction_id) => {
         'city', booking_details.city, 
         'pincode', booking_details.pincode, 
         'state', booking_details.state, 
-        'country', booking_details.country
+        'country', booking_details.country,
+        'pg_tid', booking_details.pg_tid,
+        'payment_type', booking_details.payment_type,
+        'card_type', booking_details.card_type,
+        'bank_id', booking_details.bank_id
       ) AS bookingDetailsData,
 
       -- Location details as JSON
@@ -100,46 +104,69 @@ const bookingDetails = async (transaction_id) => {
       locationData: bookingRow.locationdata,
       bookings,
     };
+    if (!pdf) {
+      // Render the email template with the booking data
+      const emailConfirmation = await ejs.renderFile(templatePath, {
+        transaction_id,
+        bookingData,
+        formatDate,
+        formatTime,
+        getSlotDurationInHrs,
+      });
 
-    // Render the email template with the booking data
-    const emailConfirmation = await ejs.renderFile(templatePath, {
-      transaction_id,
-      bookingData,
-      formatDate,
-      formatTime,
-      getSlotDurationInHrs,
-    });
-    console.log(bookingRow.bookingdetailsdata.email);
+      // Move sendEmail function definition here
+      const sendEmail = async (userEmail, emailContent) => {
+        try {
+          const transporter = nodemailer.createTransport({
+            host: "smtp.zoho.in",
+            port: 465,
+            secure: true,
+            auth: {
+              user: process.env.COMPANY_EMAIL,
+              pass: process.env.COMPANY_EMAIL_PASS,
+            },
+          });
+          const info = await transporter.sendMail({
+            from: `"Man2Web" <${process.env.COMPANY_EMAIL}>`,
+            to: userEmail,
+            subject: "Booking Confirmation",
+            text: "Your booking has been confirmed!",
+            html: emailContent,
+          });
 
-    // Move sendEmail function definition here
-    const sendEmail = async (userEmail, emailContent) => {
-      try {
-        const transporter = nodemailer.createTransport({
-          host: "smtp.zoho.in",
-          port: 465,
-          secure: true,
-          auth: {
-            user: process.env.COMPANY_EMAIL,
-            pass: process.env.COMPANY_EMAIL_PASS,
-          },
-        });
-        const info = await transporter.sendMail({
-          from: `"Man2Web" <${process.env.COMPANY_EMAIL}>`,
-          to: userEmail,
-          subject: "Booking Confirmation",
-          text: "Your booking has been confirmed!",
-          html: emailContent,
-        });
+          console.log("Message sent: %s", info.messageId);
+        } catch (error) {
+          console.log("Error sending email:", error);
+          throw new Error("Failed to send email.");
+        }
+      };
 
-        console.log("Message sent: %s", info.messageId);
-      } catch (error) {
-        console.log("Error sending email:", error);
-        throw new Error("Failed to send email.");
-      }
-    };
+      // Call sendEmail after defining it
+      await sendEmail(bookingRow.bookingdetailsdata.email, emailConfirmation);
+    } else {
+      const emailConfirmation = await ejs.renderFile(
+        path.join(__dirname, "../../types/emailConfirmation.ejs"),
+        {
+          transaction_id,
+          bookingData: bookingData,
+          formatDate: formatDate,
+          formatTime: formatTime,
+          getSlotDurationInHrs: getSlotDurationInHrs,
+        }
+      );
 
-    // Call sendEmail after defining it
-    await sendEmail(bookingRow.bookingdetailsdata.email, emailConfirmation);
+      let options = {
+        printBackground: true, // prints background images
+        preferCSSPageSize: true, // fits everything into a single page based on content
+        format: "A4",
+      };
+
+      const pdfData = await html_to_pdf.generatePdf(
+        { content: emailConfirmation },
+        options
+      );
+      return pdfData;
+    }
   } catch (error) {
     console.error("Error sending email:", error);
   }
