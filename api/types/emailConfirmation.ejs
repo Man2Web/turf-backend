@@ -776,8 +776,7 @@
                                       "
                                     >
                                       Booked On: <%=
-                                      formatDate(bookingData.bookings[0].booked_on)
-                                      %>
+                                      formatDate(bookingData.booked_on) %>
                                     </p>
                                   </td>
                                 </tr>
@@ -896,7 +895,7 @@
                                           >
                                             <strong>
                                               <%=
-                                              bookingData.courtData.court_name
+                                              bookingData.courtdata.court_name
                                               %>
                                             </strong>
                                           </p>
@@ -925,7 +924,7 @@
                                             "
                                           >
                                             Court ID: <%=
-                                            bookingData.courtData.court_id %>
+                                            bookingData.courtdata.court_id %>
                                             <br />
                                           </p>
                                           <p
@@ -944,7 +943,7 @@
                                             Email:
                                             <a
                                               target="_blank"
-                                              href="mailto:<%= bookingData.courtData.email %>?subject=Booking Query&body=I have doubt in regard to the booking of my court."
+                                              href="mailto:<%= bookingData.courtdata.email %>?subject=Booking Query&body=I have doubt in regard to the booking of my court."
                                               style="
                                                 mso-line-height-rule: exactly;
                                                 text-decoration: underline;
@@ -952,7 +951,7 @@
                                                 font-size: 14px;
                                               "
                                             >
-                                              <%= bookingData.courtData.email %>
+                                              <%= bookingData.courtdata.email %>
                                             </a>
                                           </p>
                                           <p
@@ -971,7 +970,7 @@
                                             Phone:
                                             <a
                                               target="_blank"
-                                              href="tel:<%= bookingData.courtData.phone_number %>"
+                                              href="tel:<%= bookingData.courtdata.phone_number %>"
                                               style="
                                                 mso-line-height-rule: exactly;
                                                 text-decoration: underline;
@@ -980,7 +979,7 @@
                                               "
                                             >
                                               <%=
-                                              bookingData.courtData.phone_number
+                                              bookingData.courtdata.phone_number
                                               %>
                                             </a>
                                           </p>
@@ -1000,7 +999,7 @@
                                             Location:
                                             <a
                                               target="_blank"
-                                              href="<%= bookingData.locationData.location_link %>"
+                                              href="<%= bookingData.locationdata.location_link %>"
                                               style="
                                                 mso-line-height-rule: exactly;
                                                 text-decoration: underline;
@@ -1126,8 +1125,7 @@
                                       "
                                     >
                                       <strong>
-                                        <%=
-                                        formatDate(bookingData.bookings[0].booking_date)
+                                        <%= formatDate(bookingData.booking_date)
                                         %>
                                       </strong>
                                     </p>
@@ -1136,8 +1134,8 @@
 
                                 <!-- Loop through slots for Booking Time -->
                                 <%
-                                bookingData.bookings.forEach(function(booking) {
-                                %>
+                                bookingData.booking_time.forEach(function(time)
+                                { %>
                                 <tr>
                                   <td
                                     align="left"
@@ -1176,10 +1174,9 @@
                                     >
                                       <!-- Assuming the slot.time format is correct -->
                                       <strong>
-                                        <%= formatTime(booking.booking_time) %>
-                                        - <%=
-                                        formatTime(getSlotDurationInHrs(booking.booking_time,
-                                        Number(booking.duration))) %>
+                                        <%= formatTime(time) %> - <%=
+                                        formatTime(getSlotDurationInHrs(time,
+                                        Number(bookingData.duration))) %>
                                       </strong>
                                     </p>
                                   </td>
@@ -1261,28 +1258,22 @@
                                       "
                                     >
                                       Subtotal:&nbsp;<strong>
-                                        ₹<%=
-                                        Number(bookingData.bookings[0].amount_paid)
-                                        +
-                                        Number(bookingData.bookings[0].pay_required)
+                                        ₹<%= Number(bookingData.amount_paid) +
+                                        Number(bookingData.pay_required)
                                         %></strong
                                       ><br />
 
                                       Amount Paid:&nbsp; ₹<strong>
-                                        <%= bookingData.bookings[0].amount_paid
-                                        %></strong
+                                        <%= bookingData.amount_paid %></strong
                                       ><br />
 
                                       Pay Required:&nbsp; ₹<strong>
-                                        <%= bookingData.bookings[0].pay_required
-                                        %></strong
+                                        <%= bookingData.pay_required %></strong
                                       ><br />
 
                                       Total:&nbsp;<strong>
-                                        ₹<%=
-                                        (Number(bookingData.bookings[0].amount_paid)
-                                        +
-                                        Number(bookingData.bookings[0].pay_required)).toFixed(2)
+                                        ₹<%= (Number(bookingData.amount_paid) +
+                                        Number(bookingData.pay_required)).toFixed(2)
                                         %></strong
                                       >
                                     </p>
@@ -1388,7 +1379,7 @@
                                           "
                                         >
                                           <% if
-                                          (bookingData.bookingDetailsData.pg_tid)
+                                          (bookingData.bookingdetailsdata.pg_tid)
                                           { %>
                                           <p
                                             style="
@@ -1404,7 +1395,7 @@
                                             "
                                           >
                                             PG Transaction ID:&nbsp;<%=
-                                            bookingData.bookingDetailsData.pg_tid
+                                            bookingData.bookingdetailsdata.pg_tid
                                             %>
                                           </p>
                                           <% } %>
@@ -1422,11 +1413,11 @@
                                             "
                                           >
                                             Payment Mode:&nbsp;<%=
-                                            bookingData.bookings[0].payment_mode
-                                            ? 'Offline' : 'Online' %>
+                                            bookingData.payment_mode ? 'Online'
+                                            : 'Offline' %>
                                           </p>
                                           <% if
-                                          (bookingData.bookingDetailsData.payment_type)
+                                          (bookingData.bookingdetailsdata.payment_type)
                                           { %>
                                           <p
                                             style="
@@ -1442,11 +1433,11 @@
                                             "
                                           >
                                             Payment Type: <%=
-                                            bookingData.bookingDetailsData.payment_type
+                                            bookingData.bookingdetailsdata.payment_type
                                             %>
                                           </p>
                                           <% } %> <% if
-                                          (bookingData.bookingDetailsData.card_type)
+                                          (bookingData.bookingdetailsdata.card_type)
                                           { %>
                                           <p
                                             style="
@@ -1462,11 +1453,11 @@
                                             "
                                           >
                                             Card Type: <%=
-                                            bookingData.bookingDetailsData.card_type
+                                            bookingData.bookingdetailsdata.card_type
                                             %>
                                           </p>
                                           <% } %> <% if
-                                          (bookingData.bookingDetailsData.bank_id)
+                                          (bookingData.bookingdetailsdata.bank_id)
                                           { %>
                                           <p
                                             style="
@@ -1482,7 +1473,7 @@
                                             "
                                           >
                                             Bank ID: <%=
-                                            bookingData.bookingDetailsData.bank_id
+                                            bookingData.bookingdetailsdata.bank_id
                                             %>
                                           </p>
                                           <% } %>

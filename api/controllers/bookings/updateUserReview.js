@@ -1,10 +1,13 @@
 const db = require("../../config/database");
+const getCourtByUid = require("../court/getCourtIdByUid");
 
 const updateUserReview = async (req, res) => {
   const { title, description, rating, court_id, user_id, transaction_id } =
     req.body;
 
   try {
+    const courtId = await getCourtByUid(court_id);
+
     // Update the review in the database
     const updateReviewQuery = `
       UPDATE court_reviews
@@ -16,7 +19,7 @@ const updateUserReview = async (req, res) => {
       title,
       description,
       rating,
-      court_id,
+      courtId,
       transaction_id,
       user_id,
     ]);

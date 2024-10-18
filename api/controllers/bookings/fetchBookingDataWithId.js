@@ -41,7 +41,7 @@ const fetchBookingDataWithId = async (req, res) => {
 
     // Prepare booking details response
     const bookingDetails = {
-      booking: bookingExistsRes.rows,
+      booking: bookingExistsRes.rows[0],
       courtDetails: getCourtInfoRes.rows[0],
       bookingDetails: getBookingInfoRes.rows[0],
       locationDetails: getLocationInfoRes.rows[0],

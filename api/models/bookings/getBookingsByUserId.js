@@ -125,15 +125,16 @@ const getBookingsByUserId = async (userId, limit, offset) => {
 
   // Attach court details and booking details to previous bookings
   const previousBookingsWithDetails = previousBookings.rows.map((booking) => ({
-    ...booking,
+    booking: booking,
     reviewDetails: reviewDetailsMap[booking.transaction_id] || null,
     courtDetails: courtDetailsMap[booking.court_id] || null,
     bookingDetails: bookingDetailsMap[booking.booking_detail_id] || null,
+    imagesData: imagesDetailMap[booking.court_id] || null,
   }));
 
   // Attach court details and booking details to upcoming bookings
   const upcomingBookingsWithDetails = upcomingBookings.rows.map((booking) => ({
-    ...booking,
+    booking: booking,
     courtDetails: courtDetailsMap[booking.court_id] || null,
     bookingDetails: bookingDetailsMap[booking.booking_detail_id] || null,
     imagesData: imagesDetailMap[booking.court_id] || null,

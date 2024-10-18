@@ -81,29 +81,10 @@ const bookingDetails = async (transaction_id, pdf) => {
       throw new Error("No booking found for the given transaction ID.");
     }
 
-    const bookingRow = bookingDetailsResult.rows[0];
+    const bookingData = bookingDetailsResult.rows[0];
 
-    // Map over the rows to get booking-specific details
-    const bookings = bookingDetailsResult.rows.map((row) => ({
-      booking_id: row.booking_id,
-      booking_date: row.booking_date,
-      booking_time: row.booking_time,
-      booked_on: row.booked_on,
-      amount_paid: row.amount_paid,
-      pay_required: row.pay_required,
-      duration: row.duration,
-      add_guests: row.add_guests,
-      guests: row.guests,
-    }));
+    console.log(bookingData);
 
-    // Prepare data for email template
-    const bookingData = {
-      transaction_id: bookingRow.transaction_id,
-      courtData: bookingRow.courtdata,
-      bookingDetailsData: bookingRow.bookingdetailsdata,
-      locationData: bookingRow.locationdata,
-      bookings,
-    };
     if (!pdf) {
       // Render the email template with the booking data
       const emailConfirmation = await ejs.renderFile(templatePath, {
@@ -142,7 +123,7 @@ const bookingDetails = async (transaction_id, pdf) => {
       };
 
       // Call sendEmail after defining it
-      await sendEmail(bookingRow.bookingdetailsdata.email, emailConfirmation);
+      await sendEmail(bookingData.booking_details.email, emailConfirmation);
     } else {
       const emailConfirmation = await ejs.renderFile(
         path.join(__dirname, "../../types/emailConfirmation.ejs"),

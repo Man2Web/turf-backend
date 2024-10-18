@@ -217,7 +217,7 @@ router.post("/", async (req, res) => {
 router.post("/status", async (req, res) => {
   const merchantTransactionId = req.query.id;
   const merchantId = demo_merchant_Id;
-
+  console.log(user_details);
   const keyIndex = 1;
   const string =
     `/pg/v1/status/${merchantId}/${merchantTransactionId}` + salt_key;
@@ -284,31 +284,32 @@ router.post("/status", async (req, res) => {
 
           const adminId = court.user_id;
 
+          const timeSlotsArr = [];
           // Insert each selected slot into the bookings table
           for (const slot of selected_slots) {
             const timeInHHMMSS = `${slot.slot.time}:00`;
-
-            const bookingQuery = `
-                  INSERT INTO bookings (admin_id, court_id, booking_date, booking_time, user_id, transaction_id, booking_detail_id, amount_paid, duration, pay_required, payment_mode)
-                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);
-                `;
-
-            const bookingValues = [
-              adminId,
-              court__id,
-              slot.date, // Assuming selected_date is in the correct date format
-              timeInHHMMSS, // slot.time should be in 'HH:MM:SS' format
-              userId, // If user_id is undefined, it will insert NULL
-              transaction_id,
-              bookingDetailsId,
-              Number(total_price),
-              court_duration,
-              Number(tobePaid),
-              true, // payment mode set to true for online
-            ];
-
-            await db.query(bookingQuery, bookingValues);
+            timeSlotsArr.push(timeInHHMMSS);
           }
+          const bookingQuery = `
+                INSERT INTO bookings (admin_id, court_id, booking_date, booking_time, user_id, transaction_id, booking_detail_id, amount_paid, duration, pay_required, payment_mode)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);
+              `;
+
+          const bookingValues = [
+            adminId,
+            court__id,
+            selected_slots[0].date, // Assuming selected_date is in the correct date format
+            timeSlotsArr, // slot.time should be in 'HH:MM:SS' format
+            userId, // If user_id is undefined, it will insert NULL
+            transaction_id,
+            bookingDetailsId,
+            Number(total_price),
+            court_duration,
+            Number(tobePaid),
+            true, // payment mode set to true for online
+          ];
+
+          await db.query(bookingQuery, bookingValues);
 
           await client.query("COMMIT");
 
@@ -405,32 +406,33 @@ router.post("/admin", async (req, res) => {
         message: "User is not authorized to book this court",
       });
     }
-
+    const timeSlotsArr = [];
+    console.log(selectedSlots);
     // Insert each selected slot into the bookings table
     for (const slot of selectedSlots) {
       const timeInHHMMSS = `${slot.slot.time}:00`; // Append ':00' to convert to 'HH:MM:SS'
-
-      const bookingQuery = `
-      INSERT INTO bookings (admin_id, court_id, booking_date, booking_time, user_id, transaction_id, booking_detail_id, amount_paid, payment_mode, duration, pay_required)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);
-    `;
-
-      const bookingValues = [
-        Number(userId), // Assuming this is the admin ID
-        court__id,
-        slot.date, // Assuming selectedDate is in the correct date format
-        timeInHHMMSS, // slot.time should be in 'HH:MM:SS' format
-        Number(userId), // Passing userId to record which user made the booking
-        transaction_id,
-        bookingDetailsId,
-        Number(total_price),
-        false, // Assuming false represents cash payment
-        court_duration,
-        0,
-      ];
-
-      await db.query(bookingQuery, bookingValues);
+      timeSlotsArr.push(timeInHHMMSS);
     }
+    const bookingQuery = `
+    INSERT INTO bookings (admin_id, court_id, booking_date, booking_time, user_id, transaction_id, booking_detail_id, amount_paid, payment_mode, duration, pay_required)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);
+  `;
+
+    const bookingValues = [
+      Number(userId), // Assuming this is the admin ID
+      court__id,
+      selectedSlots[0].date, // Assuming selectedDate is in the correct date format
+      timeSlotsArr, // slot.time should be in 'HH:MM:SS' format
+      Number(userId), // Passing userId to record which user made the booking
+      transaction_id,
+      bookingDetailsId,
+      Number(total_price),
+      false, // Assuming false represents cash payment
+      court_duration,
+      0,
+    ];
+
+    await db.query(bookingQuery, bookingValues);
     return res
       .status(200)
       .json({ message: "Booking Successful", transaction_id: transaction_id });

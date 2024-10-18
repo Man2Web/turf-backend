@@ -8,8 +8,14 @@ const {
   checkIfUserIsAdminWithId,
 } = require("../../models/checkIfUserIsAdminWithId");
 
-const fetchBookingsWithUserId = async (req, res) => {
+const fetchBookingsWithAdminId = async (req, res) => {
   const { adminId } = req.params;
+  const {
+    todayBookingSettings,
+    upcomingBookingSettings,
+    previousBookingSettings,
+    limit,
+  } = req.query;
 
   // Check if the user is an admin
   const isAdmin = await checkIfUserIsAdminWithId(adminId);
@@ -18,8 +24,14 @@ const fetchBookingsWithUserId = async (req, res) => {
   }
 
   // Fetch categorized booking data (today's, previous, upcoming)
-  const { todaysBookings, previousBookings, upcomingBookings } =
-    await getBookingsByUserId(adminId);
+  const { todaysBookings, previousBookings, upcomingBookings, countData } =
+    await getBookingsByAdminId(
+      adminId,
+      todayBookingSettings,
+      upcomingBookingSettings,
+      previousBookingSettings,
+      limit
+    );
 
   // Check if there are no bookings in any of the categories
   if (
@@ -36,7 +48,8 @@ const fetchBookingsWithUserId = async (req, res) => {
     todaysBookings,
     previousBookings,
     upcomingBookings,
+    countData,
   });
 };
 
-module.exports = { fetchBookingsWithUserId };
+module.exports = { fetchBookingsWithAdminId };

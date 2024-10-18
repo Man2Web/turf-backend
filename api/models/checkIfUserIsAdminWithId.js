@@ -5,7 +5,7 @@ const checkIfUserIsAdminWithId = async (id) => {
     const result = await db.query("SELECT * FROM users WHERE id = $1", [id]);
 
     const admin = result.rows[0];
-    console.log(admin);
+    // console.log(admin);
     // Check if the user is an admin
     if (admin && !admin.admin) {
       return null; // Return null if the user is not an admin

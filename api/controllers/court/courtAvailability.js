@@ -26,10 +26,23 @@ const courtAvailability = async (req, res) => {
         .json({ message: "No slots booked in the mentioned time slot" });
     }
 
+    // const bookedTimeSLots = availabilityCheck.rows.map((slot) => {
+    //   return slot.booking_time.map((time) => {
+    //     return time;
+    //   });
+    // });
+    const bookedTimeSlots = [];
+    availabilityCheck.rows.forEach((slot) => {
+      slot.booking_time.forEach((time) => {
+        bookedTimeSlots.push(time);
+      });
+      // bookedTimeSLots.push(slot.booked);
+    });
+
     // If there are bookings, return the booked slots
     return res.status(200).json({
       message: "Fetched the booked slots",
-      bookedTimeSlots: availabilityCheck.rows,
+      bookedTimeSlots,
     });
   } catch (error) {
     console.error(error); // Log the error for debugging

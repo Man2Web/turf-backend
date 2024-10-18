@@ -1,4 +1,5 @@
 const db = require("../../config/database");
+const getCourtByUid = require("../court/getCourtIdByUid");
 
 const addUserReview = async (req, res) => {
   const {
@@ -12,12 +13,14 @@ const addUserReview = async (req, res) => {
   } = req.body;
 
   try {
+    const courtId = await getCourtByUid(court_id);
+
     // Check if the review already exists for the given court_id and transaction_id
     const getReviewQuery = `
       SELECT * FROM court_reviews 
       WHERE court_id = $1 AND transaction_id = $2 AND user_id = $3`;
     const getReviewRes = await db.query(getReviewQuery, [
-      court_id,
+      courtId,
       transaction_id,
       user_id,
     ]);
@@ -34,7 +37,7 @@ const addUserReview = async (req, res) => {
       RETURNING *;`; // Return the inserted review
 
     const insertReviewRes = await db.query(insertReviewQuery, [
-      court_id,
+      courtId,
       transaction_id,
       user_id,
       title,

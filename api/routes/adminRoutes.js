@@ -8,8 +8,8 @@ const authAdmin = require("../controllers/authAdmin");
 const { fetchCourt } = require("../controllers/fetchCourt");
 const { fetchCourtWithId } = require("../controllers/fetchCourtWithId");
 const {
-  fetchBookingsWithUserId,
-} = require("../controllers/bookings/fetchBookingsWithUserId");
+  fetchBookingsWithAdminId,
+} = require("../controllers/bookings/fetchBookingsWithAdminId");
 const { deleteCourt } = require("../controllers/deleteCourt");
 
 // This file is not found need to check later.
@@ -19,7 +19,7 @@ router.post("/addAdmin", addAdmin);
 
 router.post("/auth", authAdmin);
 
-router.get("/booking/:adminId", fetchBookingsWithUserId);
+router.get("/booking/:adminId", fetchBookingsWithAdminId);
 
 router.get("/court/fetch/:id", fetchCourt);
 
