@@ -7,165 +7,193 @@ const getBookingsByAdminId = async (
   previousBookingSettings,
   limit
 ) => {
-  const today = new Date();
-  const todaysDate = today.toISOString().split("T")[0]; // Get the current date in 'YYYY-MM-DD' format
+  // const today = new Date();
+  // const todaysDate = today.toISOString().split("T")[0]; // Get the current date in 'YYYY-MM-DD' format
 
   // Query to get today's bookings
   const todaysBookingQuery = `
-    SELECT * FROM bookings 
-    WHERE admin_id = $1 
-    AND booking_date = $2
-    LIMIT $3 OFFSET $4
-  `;
-
-  // Query to count today's bookings
-  const todaysBookingQueryCount = `
-    SELECT COUNT(*) FROM bookings 
-    WHERE admin_id = $1 
-    AND booking_date = $2
-  `;
+  SELECT bookings.*,
+    json_build_object(
+      'court_id', courts.court_id,
+      'admin_id', courts.admin_id,
+      'court_name', courts.court_name,
+      'court_type', courts.court_type
+    ) AS court_info,
+    json_build_object(
+      'email', booking_details.email,
+      'phone_number', booking_details.phone_number,
+      'location', booking_details.location,
+      'fname', booking_details.fname,
+      'lname', booking_details.lname,
+      'city', booking_details.city,
+      'pincode', booking_details.pincode,
+      'guests', booking_details.guests,
+      'add_guests', booking_details.add_guests,
+      'payment_type', booking_details.payment_type,
+      'pg_type', booking_details.pg_type,
+      'bank_id', booking_details.bank_id,
+      'state', booking_details.state,
+      'pg_tid', booking_details.pg_tid,
+      'card_type', booking_details.card_type,
+      'country', booking_details.country
+    ) AS booking_info,
+    json_build_object(
+      'city', court_details.city,
+      'location_link', court_details.location_link,
+      'price', court_details.price,
+      'add_price', court_details.add_price,
+      'guests', court_details.guests,
+      'add_guests', court_details.add_guests,
+      'email', court_details.email,
+      'phone_number', court_details.phone_number,
+      'advance_pay', court_details.advance_pay
+    ) as court_details,
+    (
+      SELECT COUNT(*) 
+      FROM bookings
+      JOIN booking_details ON bookings.booking_detail_id = booking_details.id
+      JOIN courts ON bookings.court_id = courts.id
+      JOIN court_details ON courts.id = court_details.court_id
+      WHERE bookings.admin_id = $1 
+      AND bookings.booking_date = NOW()
+    ) AS total_count
+  FROM bookings
+  JOIN booking_details ON bookings.booking_detail_id = booking_details.id
+  JOIN courts ON bookings.court_id = courts.id
+  JOIN court_details ON courts.id = court_details.court_id
+  WHERE bookings.admin_id = $1 
+  AND bookings.booking_date = NOW()
+  LIMIT $2 OFFSET $3
+`;
 
   // Query to get previous bookings (before today)
   const previousBookingQuery = `
-    SELECT * FROM bookings 
-    WHERE admin_id = $1 
-    AND booking_date < $2
-    LIMIT $3 OFFSET $4
-  `;
-
-  // Query to count previous bookings (before today)
-  const previousBookingQueryCount = `
-    SELECT COUNT(*) FROM bookings 
-    WHERE admin_id = $1 
-    AND booking_date < $2
-  `;
+  SELECT bookings.*,
+    json_build_object(
+      'court_id', courts.court_id,
+      'admin_id', courts.admin_id,
+      'court_name', courts.court_name,
+      'court_type', courts.court_type
+    ) AS court_info,
+    json_build_object(
+      'email', booking_details.email,
+      'phone_number', booking_details.phone_number,
+      'location', booking_details.location,
+      'fname', booking_details.fname,
+      'lname', booking_details.lname,
+      'city', booking_details.city,
+      'pincode', booking_details.pincode,
+      'guests', booking_details.guests,
+      'add_guests', booking_details.add_guests,
+      'payment_type', booking_details.payment_type,
+      'pg_type', booking_details.pg_type,
+      'bank_id', booking_details.bank_id,
+      'state', booking_details.state,
+      'pg_tid', booking_details.pg_tid,
+      'card_type', booking_details.card_type,
+      'country', booking_details.country
+    ) AS booking_info,
+    json_build_object(
+      'city', court_details.city,
+      'location_link', court_details.location_link,
+      'price', court_details.price,
+      'add_price', court_details.add_price,
+      'guests', court_details.guests,
+      'add_guests', court_details.add_guests,
+      'email', court_details.email,
+      'phone_number', court_details.phone_number,
+      'advance_pay', court_details.advance_pay
+    ) as court_details,
+    (
+      SELECT COUNT(*) 
+      FROM bookings
+      JOIN booking_details ON bookings.booking_detail_id = booking_details.id
+      JOIN courts ON bookings.court_id = courts.id
+      JOIN court_details ON courts.id = court_details.court_id
+      WHERE bookings.admin_id = $1 
+      AND bookings.booking_date < NOW()
+    ) AS total_count
+  FROM bookings
+  JOIN booking_details ON bookings.booking_detail_id = booking_details.id
+  JOIN courts ON bookings.court_id = courts.id
+  JOIN court_details ON courts.id = court_details.court_id
+  WHERE bookings.admin_id = $1 
+  AND bookings.booking_date < NOW()
+  LIMIT $2 OFFSET $3
+`;
 
   // Query to get upcoming bookings (after today)
   const upcomingBookingQuery = `
-    SELECT * FROM bookings 
-    WHERE admin_id = $1 
-    AND booking_date > $2
-    LIMIT $3 OFFSET $4
-  `;
-
-  // Query to count upcoming bookings (after today)
-  const upcomingBookingQueryCount = `
-    SELECT COUNT(*) FROM bookings 
-    WHERE admin_id = $1 
-    AND booking_date > $2
+    SELECT bookings.*,
+    json_build_object(
+      'court_id', courts.court_id,
+      'admin_id', courts.admin_id,
+      'court_name', courts.court_name,
+      'court_type', courts.court_type
+    ) AS court_info,
+    json_build_object(
+      'email', booking_details.email,
+      'phone_number', booking_details.phone_number,
+      'location', booking_details.location,
+      'fname', booking_details.fname,
+      'lname', booking_details.lname,
+      'city', booking_details.city,
+      'pincode', booking_details.pincode,
+      'guests', booking_details.guests,
+      'add_guests', booking_details.add_guests,
+      'payment_type', booking_details.payment_type,
+      'pg_type', booking_details.pg_type,
+      'bank_id', booking_details.bank_id,
+      'state', booking_details.state,
+      'pg_tid', booking_details.pg_tid,
+      'card_type', booking_details.card_type,
+      'country', booking_details.country
+    ) AS booking_info,
+    json_build_object(
+      'city', court_details.city,
+      'location_link', court_details.location_link,
+      'price', court_details.price,
+      'add_price', court_details.add_price,
+      'guests', court_details.guests,
+      'add_guests', court_details.add_guests,
+      'email', court_details.email,
+      'phone_number', court_details.phone_number,
+      'advance_pay', court_details.advance_pay
+    ) as court_details,
+    (
+      SELECT COUNT(*) 
+      FROM bookings
+      JOIN booking_details ON bookings.booking_detail_id = booking_details.id
+      JOIN courts ON bookings.court_id = courts.id
+      JOIN court_details ON courts.id = court_details.court_id
+      WHERE bookings.admin_id = $1 
+      AND bookings.booking_date > NOW()
+    ) AS total_count
+  FROM bookings
+  JOIN booking_details ON bookings.booking_detail_id = booking_details.id
+  JOIN courts ON bookings.court_id = courts.id
+  JOIN court_details ON courts.id = court_details.court_id
+  WHERE bookings.admin_id = $1 
+  AND bookings.booking_date > NOW()
+  LIMIT $2 OFFSET $3  
   `;
 
   // Execute all queries concurrently using Promise.all
-  const [
-    todaysBookings,
-    previousBookings,
-    upcomingBookings,
-    todaysBookingsCount,
-    previousBookingsCount,
-    upcomingBookingsCount,
-  ] = await Promise.all([
-    db.query(todaysBookingQuery, [
-      adminId,
-      todaysDate,
-      limit,
-      todayBookingSettings,
-    ]),
-    db.query(previousBookingQuery, [
-      adminId,
-      todaysDate,
-      limit,
-      previousBookingSettings,
-    ]),
-    db.query(upcomingBookingQuery, [
-      adminId,
-      todaysDate,
-      limit,
-      upcomingBookingSettings,
-    ]),
-    db.query(todaysBookingQueryCount, [adminId, todaysDate]),
-    db.query(previousBookingQueryCount, [adminId, todaysDate]),
-    db.query(upcomingBookingQueryCount, [adminId, todaysDate]),
-  ]);
+  const [todaysBookings, previousBookings, upcomingBookings] =
+    await Promise.all([
+      db.query(todaysBookingQuery, [adminId, limit, todayBookingSettings]),
+      db.query(previousBookingQuery, [adminId, limit, previousBookingSettings]),
+      db.query(upcomingBookingQuery, [adminId, limit, upcomingBookingSettings]),
+    ]);
 
-  // Get all unique court IDs and booking detail IDs from today's, previous, and upcoming bookings
-  const allCourtIds = [
-    ...todaysBookings.rows.map((row) => row.court_id),
-    ...previousBookings.rows.map((row) => row.court_id),
-    ...upcomingBookings.rows.map((row) => row.court_id),
-  ];
-
-  const allBookingDetailIds = [
-    ...todaysBookings.rows.map((row) => row.booking_detail_id),
-    ...previousBookings.rows.map((row) => row.booking_detail_id),
-    ...upcomingBookings.rows.map((row) => row.booking_detail_id),
-  ];
-
-  // Query to get details of all courts in one go
-  const detailsQuery = "SELECT * FROM courts WHERE id = ANY($1::int[])"; // Assuming court_id is an integer
-  const detailsRes = await db.query(detailsQuery, [allCourtIds]);
-
-  // Query to get details of all booking details in one go
-  const bookingDetailsQuery =
-    "SELECT * FROM booking_details WHERE id = ANY($1::int[])"; // Assuming booking_detail_id is an integer
-  const bookingDetailsRes = await db.query(bookingDetailsQuery, [
-    allBookingDetailIds,
-  ]);
-
-  // Mapping the court location
-  const locationDetailsMap = {};
-  const locationDetailsQuery =
-    "SELECT * FROM locations WHERE court_id = ANY($1::int[])";
-  const locationDetailsRes = await db.query(locationDetailsQuery, [
-    allCourtIds,
-  ]);
-  locationDetailsRes.rows.forEach((location) => {
-    locationDetailsMap[location.court_id] = location;
-  });
-
-  // Create a mapping of court IDs to court details
-  const courtDetailsMap = {};
-  detailsRes.rows.forEach((court) => {
-    courtDetailsMap[court.id] = court; // Assuming court has an 'id' field
-  });
-
-  // Create a mapping of booking detail IDs to booking details
-  const bookingDetailsMap = {};
-  bookingDetailsRes.rows.forEach((detail) => {
-    bookingDetailsMap[detail.id] = detail; // Assuming detail has an 'id' field
-  });
-
-  // Attach court details and booking details to today's bookings
-  const todaysBookingsWithDetails = todaysBookings.rows.map((booking) => ({
-    booking: booking,
-    courtDetails: courtDetailsMap[booking.court_id] || null, // Attach court details or null if not found
-    bookingDetails: bookingDetailsMap[booking.booking_detail_id] || null, // Attach booking details or null if not found
-    locationDetails: locationDetailsMap[booking.court_id] || null,
-  }));
-
-  // Attach court details and booking details to previous bookings
-  const previousBookingsWithDetails = previousBookings.rows.map((booking) => ({
-    booking: booking,
-    courtDetails: courtDetailsMap[booking.court_id] || null, // Attach court details or null if not found
-    bookingDetails: bookingDetailsMap[booking.booking_detail_id] || null, // Attach booking details or null if not found
-    locationDetails: locationDetailsMap[booking.court_id] || null,
-  }));
-
-  // Attach court details and booking details to upcoming bookings
-  const upcomingBookingsWithDetails = upcomingBookings.rows.map((booking) => ({
-    booking: booking,
-    courtDetails: courtDetailsMap[booking.court_id] || null, // Attach court details or null if not found
-    bookingDetails: bookingDetailsMap[booking.booking_detail_id] || null, // Attach booking details or null if not found
-    locationDetails: locationDetailsMap[booking.court_id] || null,
-  }));
-  // Return the bookings if needed
   return {
-    todaysBookings: todaysBookingsWithDetails,
-    previousBookings: previousBookingsWithDetails,
-    upcomingBookings: upcomingBookingsWithDetails,
+    todaysBookings: todaysBookings.rows,
+    previousBookings: previousBookings.rows,
+    upcomingBookings: upcomingBookings.rows,
     countData: {
-      todaysBookingsCount: todaysBookingsCount.rows[0].count,
-      previousBookingsCount: previousBookingsCount.rows[0].count,
-      upcomingBookingsCount: upcomingBookingsCount.rows[0].count,
+      todaysBookingsCount: todaysBookings.rows[0]?.total_count || 0,
+      previousBookingsCount: previousBookings.rows[0]?.total_count || 0,
+      upcomingBookingsCount: upcomingBookings.rows[0]?.total_count || 0,
     },
   };
 };

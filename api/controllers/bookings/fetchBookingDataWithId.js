@@ -4,51 +4,57 @@ const fetchBookingDataWithId = async (req, res) => {
   const { t_id } = req.params;
 
   try {
-    // Check if the booking exists
-    const bookingExistsQuery = `
-      SELECT * FROM bookings WHERE transaction_id = $1
+    const bookingDetailsQuery = `
+    SELECT bookings.*,
+    json_build_object(
+      'court_id', courts.court_id,
+      'admin_id', courts.admin_id,
+      'court_name', courts.court_name,
+      'court_type', courts.court_type
+    ) AS court_info,
+    json_build_object(
+      'email', booking_details.email,
+      'phone_number', booking_details.phone_number,
+      'location', booking_details.location,
+      'fname', booking_details.fname,
+      'lname', booking_details.lname,
+      'city', booking_details.city,
+      'pincode', booking_details.pincode,
+      'guests', booking_details.guests,
+      'add_guests', booking_details.add_guests,
+      'payment_type', booking_details.payment_type,
+      'pg_type', booking_details.pg_type,
+      'bank_id', booking_details.bank_id,
+      'state', booking_details.state,
+      'pg_tid', booking_details.pg_tid,
+      'card_type', booking_details.card_type,
+      'country', booking_details.country
+    ) AS booking_info,
+    json_build_object(
+      'city', court_details.city,
+      'location_link', court_details.location_link,
+      'price', court_details.price,
+      'add_price', court_details.add_price,
+      'guests', court_details.guests,
+      'add_guests', court_details.add_guests,
+      'email', court_details.email,
+      'phone_number', court_details.phone_number,
+      'advance_pay', court_details.advance_pay
+    ) as court_details
+  FROM bookings
+  JOIN booking_details ON bookings.booking_detail_id = booking_details.id
+  JOIN courts ON bookings.court_id = courts.id
+  JOIN court_details ON courts.id = court_details.court_id
+  WHERE bookings.transaction_id = $1 
     `;
-    const bookingExistsRes = await db.query(bookingExistsQuery, [t_id]);
+    const bookingDetails = await db.query(bookingDetailsQuery, [t_id]);
 
-    // console.log(bookingExistsRes.rows);
-
-    if (bookingExistsRes.rows.length === 0) {
-      return res.status(404).json({ message: "No Booking Data found" });
+    if (bookingDetails.rows.length === 0) {
+      res.status(404).json({ message: "No Booking Details Found" });
     }
 
-    // Destructure court_id and booking_detail_id
-    const { court_id, booking_detail_id } = bookingExistsRes.rows[0];
-
-    // Get court information
-    const getCourtInfoQuery = `
-      SELECT * FROM courts WHERE id = $1
-    `;
-    const getCourtInfoRes = await db.query(getCourtInfoQuery, [court_id]);
-
-    // Get booking details information
-    const getBookingInfoQuery = `
-      SELECT * FROM booking_details WHERE id = $1
-    `;
-    const getBookingInfoRes = await db.query(getBookingInfoQuery, [
-      booking_detail_id,
-    ]);
-
-    // Get location information (assuming location is tied to court)
-    const getLocationInfoQuery = `
-      SELECT * FROM locations WHERE court_id = $1
-    `;
-    const getLocationInfoRes = await db.query(getLocationInfoQuery, [court_id]);
-
-    // Prepare booking details response
-    const bookingDetails = {
-      booking: bookingExistsRes.rows[0],
-      courtDetails: getCourtInfoRes.rows[0],
-      bookingDetails: getBookingInfoRes.rows[0],
-      locationDetails: getLocationInfoRes.rows[0],
-    };
-
     // Send the successful response with booking details
-    res.status(200).json(bookingDetails);
+    res.status(200).json(bookingDetails.rows[0]);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal Server Error" });

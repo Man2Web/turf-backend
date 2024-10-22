@@ -2,9 +2,6 @@ const {
   getBookingsByAdminId,
 } = require("../../models/bookings/getBookingsByAdminId");
 const {
-  getBookingsByUserId,
-} = require("../../models/bookings/getBookingsByUserId");
-const {
   checkIfUserIsAdminWithId,
 } = require("../../models/checkIfUserIsAdminWithId");
 

@@ -2,7 +2,7 @@ const db = require("../../config/database");
 
 const getLocations = async (req, res) => {
   try {
-    const locationsQuery = "SELECT city FROM locations";
+    const locationsQuery = "SELECT city FROM court_details";
     const locationsRes = await db.query(locationsQuery);
     const uniqueCities = Array.from(
       new Set(locationsRes.rows.map((location) => location.city))

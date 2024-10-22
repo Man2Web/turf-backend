@@ -3,6 +3,9 @@ const path = require("path");
 const fs = require("fs");
 const sharp = require("sharp");
 const db = require("../../config/database");
+const { v4: uuid } = require("uuid");
+const convertAvailability = require("../../services/convertAvailability");
+const getCourtByUid = require("../../controllers/court/getCourtIdByUid");
 
 const storage = multer.memoryStorage(); // Store files in memory temporarily
 const upload = multer({ storage: storage });
@@ -25,19 +28,31 @@ const editCourt = async (req, res) => {
     email,
   } = req.body;
 
-  venuePrice = JSON.parse(venuePrice);
-  courtIncludes = JSON.parse(courtIncludes);
-  amenities = JSON.parse(amenities);
-  location = JSON.parse(location);
-  courtAvailability = JSON.parse(courtAvailability);
+  const getCourtId = await db.query(
+    "SELECT * FROM courts WHERE court_id = $1 AND admin_id = $2",
+    [courtId, userId]
+  );
 
-  const courtImages = req.files;
-
-  //   console.log('Court Images:', courtImages);
-
-  if (!courtImages || courtImages.length === 0) {
-    return res.status(400).json({ error: "No files were uploaded." });
+  const court_id = getCourtId.rows[0].id;
+  // Parse JSON fields
+  try {
+    venuePrice = JSON.parse(venuePrice);
+    courtIncludes = JSON.parse(courtIncludes);
+    amenities = JSON.parse(amenities);
+    location = JSON.parse(location);
+    courtAvailability = JSON.parse(courtAvailability);
+    rulesOfVenue = JSON.parse(rulesOfVenue);
+  } catch (err) {
+    return res
+      .status(400)
+      .json({ error: "Invalid JSON format in one of the fields" });
   }
+
+  const availabilityData = convertAvailability(courtAvailability);
+  const courtImages = req.files;
+  const uploadedImages = [];
+  const uniqueId = uuid();
+  const uploadDir = path.join(__dirname, `../../uploads/${userId}/${uniqueId}`);
 
   // Acquire a client from the pool
   const client = await db.pool.connect();
@@ -45,159 +60,79 @@ const editCourt = async (req, res) => {
   try {
     await client.query("BEGIN"); // Start a transaction
 
-    // 1. Update courts
-    const courtQuery = `
-      UPDATE courts 
-      SET court_name = $1, court_type = $2, venue_overview = $3, rules_of_venue = $4, phone_number = $5, email = $6
-      WHERE id = $7 AND user_id = $8;
-    `;
-    const courtValues = [
-      courtName,
-      courtType,
-      venueOverview,
-      rulesOfVenue,
-      phoneNumber,
-      email,
-      courtId,
-      userId,
-    ];
-    await client.query(courtQuery, courtValues);
-
-    // 2. Update locations
-    if (location) {
-      const locationQuery = `
-        UPDATE locations 
-        SET country = $1, city = $2, location_link = $3, embed_link = $4
-        WHERE court_id = $5;
-      `;
-      const locationValues = [
-        location.country,
-        location.city,
-        location.locationLink,
-        location.embedLink,
-        courtId,
-      ];
-      await client.query(locationQuery, locationValues);
+    // Remove the existing upload directory if it exists
+    if (fs.existsSync(uploadDir)) {
+      fs.rmSync(uploadDir, { recursive: true, force: true });
     }
 
-    // 3. Update venue_price
-    if (venuePrice) {
-      const venuePriceQuery = `
-        UPDATE venue_price 
-        SET starting_price = $1, max_guests = $2, additional_guests = $3, price_of_additional_guests = $4, advance_pay = $5
-        WHERE court_id = $6
-      `;
-      const venuePriceValues = [
-        venuePrice.startingPrice,
-        venuePrice.maxGuests,
-        venuePrice.additionalGuests,
-        venuePrice.priceOfAdditionalGuests,
-        venuePrice.advancePay,
-        courtId,
-      ];
-      await client.query(venuePriceQuery, venuePriceValues);
-    }
+    // Create the upload directory before processing images
+    fs.mkdirSync(uploadDir, { recursive: true });
 
-    // 4. Update court_includes
-    if (courtIncludes) {
-      const courtIncludesQuery = `
-        UPDATE court_includes 
-        SET badminton_racket = $1, bats = $2, hitting_machines = $3, multiple_courts = $4, spare_players = $5, instant_racket = $6, green_turfs = $7 
-        WHERE court_id = $8
-      `;
-      const courtIncludesValues = [
-        courtIncludes.badmintonRacket,
-        courtIncludes.bats,
-        courtIncludes.hittingMachines,
-        courtIncludes.multipleCourts,
-        courtIncludes.sparePlayers,
-        courtIncludes.instantRacket,
-        courtIncludes.greenTurfs,
-        courtId,
-      ];
-      await client.query(courtIncludesQuery, courtIncludesValues);
-    }
-
-    // 5. Update amenities
-    if (amenities) {
-      const amenitiesQuery = `
-        UPDATE amenities 
-        SET parking = $1, drinking_water = $2, first_aid = $3, change_room = $4, shower = $5 
-        WHERE court_id = $6
-      `;
-      const amenitiesValues = [
-        amenities.parking,
-        amenities.drinkingWater,
-        amenities.firstAid,
-        amenities.changeRoom,
-        amenities.shower,
-        courtId,
-      ];
-      await client.query(amenitiesQuery, amenitiesValues);
-    }
-
-    // 6. Update court images (delete existing and insert new)
-    const deleteImagesQuery = `DELETE FROM court_images WHERE court_id = $1`;
-    await client.query(deleteImagesQuery, [courtId]);
-
-    const removeFolder = path.join(
-      __dirname,
-      `../../uploads/${userId}/${courtId}`
-    );
-
-    if (fs.existsSync(removeFolder)) {
-      await fs.promises.rm(removeFolder, { recursive: true });
-    }
+    // Uploading images to server
     if (courtImages && courtImages.length > 0) {
-      const uploadDir = path.join(
-        __dirname,
-        `../../uploads/${userId}/${courtId}`
-      );
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-      }
-
-      const courtImagesQuery = `INSERT INTO court_images (court_id, image_url) VALUES ($1, $2)`;
-
       for (const image of courtImages) {
         const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-        const fileName = `${uniqueSuffix}.webp`;
+        const fileName = `${uniqueSuffix}.webp`; // Create a unique filename with WebP format
 
-        // Process image with sharp
+        // Compress and convert the image to WebP format
         await sharp(image.buffer)
-          .resize(800, 600) // Resize as needed
-          .webp({ quality: 80 }) // Convert to WebP format
+          .resize(800, 600) // Resize to 800x600 pixels
+          .webp({ quality: 80 }) // Convert to WebP format with 80% quality
           .toFile(path.join(uploadDir, fileName));
 
-        const imageUrl = `${fileName}`;
-        await client.query(courtImagesQuery, [courtId, imageUrl]);
+        const imageUrl = `${fileName}`; // Store the relative path to the image
+        uploadedImages.push(imageUrl);
       }
     }
+    console.log(uploadedImages);
+    const courtQuery = `
+      UPDATE courts 
+      SET court_name = $1, court_type = $2 
+      WHERE id = $3
+    `;
+    await client.query(courtQuery, [courtName, courtType, court_id]);
 
-    // 7. Update court availability (delete existing and insert new)
-    const deleteAvailabilityQuery = `DELETE FROM court_availability WHERE court_id = $1`;
-    await client.query(deleteAvailabilityQuery, [courtId]);
-
-    if (courtAvailability) {
-      const availabilityQuery = `INSERT INTO court_availability (court_id, day_of_week, duration, start_time, end_time) VALUES ($1, $2, $3, $4, $5)`;
-      const availabilityDays = Object.keys(courtAvailability);
-      for (const day of availabilityDays) {
-        const availability = courtAvailability[day];
-        await client.query(availabilityQuery, [
-          courtId,
-          day,
-          availability.duration,
-          availability.startTime,
-          availability.endTime,
-        ]);
-      }
-    }
+    // Update court_details
+    const courtDetailsQuery = `
+      UPDATE court_details 
+      SET availability = $1, images = $2, city = $3, location_link = $4, 
+          embedded_link = $5, price = $6, add_price = $7, guests = $8, 
+          add_guests = $9, advance_pay = $10, amenities = $11, 
+          includes = $12, email = $13, phone_number = $14, 
+          overview = $15, rules = $16 
+      WHERE court_id = $17
+    `;
+    await client.query(courtDetailsQuery, [
+      availabilityData,
+      uploadedImages,
+      location.city,
+      location.locationLink,
+      location.embedLink,
+      venuePrice.startingPrice,
+      venuePrice.priceOfAdditionalGuests,
+      venuePrice.maxGuests,
+      venuePrice.additionalGuests,
+      venuePrice.advancePay,
+      amenities,
+      courtIncludes,
+      email,
+      phoneNumber,
+      venueOverview,
+      rulesOfVenue,
+      court_id,
+    ]);
 
     // Commit the transaction
     await client.query("COMMIT");
     res.status(200).json({ message: "Court updated successfully!" });
   } catch (error) {
     await client.query("ROLLBACK");
+    // Remove uploaded directory if exists
+    fs.rm(uploadDir, { recursive: true, force: true }, (err) => {
+      if (err) {
+        console.error(`Error while removing directory ${uploadDir}:`, err);
+      }
+    });
     console.error(error);
     res.status(500).json({ error: "Failed to update court" });
   } finally {

@@ -16,7 +16,7 @@ const router = express.Router();
 
 router.post("/add", upload.array("files"), addCourt);
 
-router.put("/edit/:adminId/:courtId", upload.array("files"), editCourt);
+router.post("/edit/:adminId/:courtId", upload.array("files"), editCourt);
 
 router.get("/fetch/:courtId", fetchCourtWithCourtId);
 

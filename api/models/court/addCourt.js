@@ -1,8 +1,10 @@
+const db = require("../../config/database");
 const multer = require("multer");
 const path = require("path");
 const sharp = require("sharp");
 const fs = require("fs");
-const db = require("../../config/database");
+const { v4: uuid } = require("uuid");
+const convertAvailability = require("../../services/convertAvailability");
 
 // Configure multer to store files in memory as Buffer
 const storage = multer.memoryStorage(); // Store files in memory temporarily
@@ -18,7 +20,7 @@ const addCourt = async (req, res) => {
     amenities,
     location,
     courtType,
-    venueOverview, // Corrected field name
+    venueOverview,
     rulesOfVenue,
     courtAvailability,
     userId,
@@ -26,155 +28,109 @@ const addCourt = async (req, res) => {
     email,
   } = req.body;
 
-  console.log(req.body);
-
+  // console.log(req.body);
+  let rulesOfTheVenue;
   // Parse JSON fields
-  venuePrice = JSON.parse(venuePrice);
-  courtIncludes = JSON.parse(courtIncludes);
-  amenities = JSON.parse(amenities);
-  location = JSON.parse(location);
-  courtAvailability = JSON.parse(courtAvailability);
+  try {
+    venuePrice = JSON.parse(venuePrice);
+    courtIncludes = JSON.parse(courtIncludes);
+    amenities = JSON.parse(amenities);
+    location = JSON.parse(location);
+    courtAvailability = JSON.parse(courtAvailability);
+    rulesOfTheVenue = JSON.parse(rulesOfVenue);
+  } catch (err) {
+    return res
+      .status(400)
+      .json({ error: "Invalid JSON format in one of the fields" });
+  }
+
+  const availabilityData = convertAvailability(courtAvailability);
 
   const courtImages = req.files;
-
-  // console.log(courtImages);
+  const uploadedImages = [];
 
   // Acquire a client from the pool
   const client = await db.pool.connect();
+  const uniqueId = uuid();
+  const uploadDir = path.join(__dirname, `../../uploads/${userId}/${uniqueId}`);
 
   try {
     await client.query("BEGIN"); // Start a transaction
 
     // 1. Insert into courts
     const courtQuery = `
-      INSERT INTO courts (user_id, court_name, court_type, venue_overview, rules_of_venue, phone_number, email)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO courts (admin_id, court_name, court_type, court_id)
+      VALUES ($1, $2, $3, $4)
       RETURNING id;
     `;
-    const courtValues = [
-      userId,
-      courtName,
-      courtType,
-      venueOverview,
-      rulesOfVenue,
-      phoneNumber,
-      email,
-    ];
+    const courtValues = [userId, courtName, courtType, uniqueId];
     const courtResult = await client.query(courtQuery, courtValues);
     const courtId = courtResult.rows[0].id;
 
-    // 2. Insert into locations
-    const locationQuery = `
-      INSERT INTO locations (country, city, location_link, embed_link, court_id)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING id;
-    `;
-    const locationValues = [
-      location.country,
-      location.city,
-      location.locationLink,
-      location.embedLink,
-      courtId,
-    ];
-
-    await client.query(locationQuery, locationValues);
-
-    // Create the upload directory if it doesn't exist
-    const uploadDir = path.join(
-      __dirname,
-      `../../uploads/${userId}/${courtId}`
-    );
+    // Create the upload directory before processing images
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
 
-    // 3. Insert into venue_price
-    const venuePriceQuery = `
-      INSERT INTO venue_price (court_id, starting_price, max_guests, additional_guests, price_of_additional_guests, advance_pay)
-      VALUES ($1, $2, $3, $4, $5, $6);
-    `;
-    const venuePriceValues = [
-      courtId,
-      venuePrice.startingPrice,
-      venuePrice.maxGuests,
-      venuePrice.additionalGuests,
-      venuePrice.priceOfAdditionalGuests,
-      venuePrice.advancePay,
-    ];
-    await client.query(venuePriceQuery, venuePriceValues);
-
-    // 4. Insert into court_includes
-    const courtIncludesQuery = `
-      INSERT INTO court_includes (court_id, badminton_racket, bats, hitting_machines, multiple_courts, spare_players, instant_racket, green_turfs)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
-    `;
-    const courtIncludesValues = [
-      courtId,
-      courtIncludes.badmintonRacket,
-      courtIncludes.bats,
-      courtIncludes.hittingMachines,
-      courtIncludes.multipleCourts,
-      courtIncludes.sparePlayers,
-      courtIncludes.instantRacket,
-      courtIncludes.greenTurfs,
-    ];
-    await client.query(courtIncludesQuery, courtIncludesValues);
-
-    // 5. Insert into amenities
-    const amenitiesQuery = `
-      INSERT INTO amenities (court_id, parking, drinking_water, first_aid, change_room, shower)
-      VALUES ($1, $2, $3, $4, $5, $6);
-    `;
-    const amenitiesValues = [
-      courtId,
-      amenities.parking,
-      amenities.drinkingWater,
-      amenities.firstAid,
-      amenities.changeRoom,
-      amenities.shower,
-    ];
-    await client.query(amenitiesQuery, amenitiesValues);
-
-    const courtImagesQuery = `
-      INSERT INTO court_images (court_id, image_url)
-      VALUES ($1, $2);
-    `;
-
+    // Uploading images to server
     for (const image of courtImages) {
       const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
       const fileName = `${uniqueSuffix}.webp`; // Create a unique filename with WebP format
 
       // Compress and convert the image to WebP format
       await sharp(image.buffer)
-        .resize(800, 600) // Resize to 800x600 pixels (you can adjust this)
+        .resize(800, 600) // Resize to 800x600 pixels
         .webp({ quality: 80 }) // Convert to WebP format with 80% quality
         .toFile(path.join(uploadDir, fileName));
 
       const imageUrl = `${fileName}`; // Store the relative path to the image
-      await client.query(courtImagesQuery, [courtId, imageUrl]); // Insert image URL into the database
+      uploadedImages.push(imageUrl);
     }
-    // 7. Insert court availability for each day
-    const availabilityQuery = `
-      INSERT INTO court_availability (court_id, day_of_week, duration, start_time, end_time)
-      VALUES ($1, $2, $3, $4, $5);
+
+    // Insert court_details
+    const courtDetailsQuery = `
+      INSERT INTO court_details (
+        court_id, availability, images, city, location_link, embedded_link, price, 
+        add_price, guests, add_guests, 
+        advance_pay, amenities, includes, 
+        email, phone_number, overview, rules
+      ) 
+      VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17
+      )
     `;
-    const availabilityDays = Object.keys(courtAvailability);
-    for (const day of availabilityDays) {
-      const availability = courtAvailability[day];
-      await client.query(availabilityQuery, [
-        courtId,
-        day,
-        availability.duration,
-        availability.startTime,
-        availability.endTime,
-      ]);
-    }
+
+    await client.query(courtDetailsQuery, [
+      courtId,
+      availabilityData,
+      uploadedImages,
+      location.city,
+      location.locationLink,
+      location.embedLink,
+      venuePrice.startingPrice,
+      venuePrice.priceOfAdditionalGuests,
+      venuePrice.maxGuests,
+      venuePrice.additionalGuests,
+      venuePrice.advancePay,
+      amenities,
+      courtIncludes,
+      email,
+      phoneNumber,
+      venueOverview,
+      rulesOfTheVenue,
+    ]);
 
     // Commit the transaction
     await client.query("COMMIT");
-    res.status(201).json({ message: "Court added successfully!" });
+    res.status(201).json({ message: "Court Request Successfully sent!" });
   } catch (error) {
     await client.query("ROLLBACK");
+    // Use fs.rm() with a callback to handle potential errors
+    fs.rm(uploadDir, { recursive: true, force: true }, (err) => {
+      if (err) {
+        console.error(`Error while removing directory ${uploadDir}:`, err);
+      }
+    });
     console.error(error);
     res.status(500).json({ error: "Failed to add court" });
   } finally {

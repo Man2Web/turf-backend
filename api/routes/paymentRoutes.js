@@ -1,14 +1,8 @@
 const express = require("express");
 const crypto = require("crypto");
 const axios = require("axios");
-const moment = require("moment");
 const db = require("../config/database");
-const { payment } = require("../controllers/payment/payment");
-const { status } = require("../controllers/payment/status");
 const { bookingDetails } = require("../models/payment/bookingDetails");
-const formatTime = require("../services/formatTime");
-const formatDate = require("../services/formatDate");
-const getSlotDurationInHrs = require("../services/getSlotDuration");
 const getCourtByUid = require("../controllers/court/getCourtIdByUid");
 const router = express.Router();
 
@@ -282,12 +276,12 @@ router.post("/status", async (req, res) => {
           const courtResult = await db.query(courtQuery, [court__id]);
           const court = courtResult.rows[0];
 
-          const adminId = court.user_id;
+          const adminId = court.admin_id;
 
           const timeSlotsArr = [];
           // Insert each selected slot into the bookings table
           for (const slot of selected_slots) {
-            const timeInHHMMSS = `${slot.slot.time}:00`;
+            const timeInHHMMSS = `${slot.time}:00`;
             timeSlotsArr.push(timeInHHMMSS);
           }
           const bookingQuery = `
@@ -298,7 +292,7 @@ router.post("/status", async (req, res) => {
           const bookingValues = [
             adminId,
             court__id,
-            selected_slots[0].date, // Assuming selected_date is in the correct date format
+            selected_date, // Assuming selected_date is in the correct date format
             timeSlotsArr, // slot.time should be in 'HH:MM:SS' format
             userId, // If user_id is undefined, it will insert NULL
             transaction_id,
@@ -401,7 +395,7 @@ router.post("/admin", async (req, res) => {
     } = court;
 
     // Check if the userId matches the adminId (the owner of the court)
-    if (Number(userId) !== Number(court.user_id)) {
+    if (Number(userId) !== Number(court.admin_id)) {
       return res.status(403).json({
         message: "User is not authorized to book this court",
       });
@@ -410,7 +404,7 @@ router.post("/admin", async (req, res) => {
     console.log(selectedSlots);
     // Insert each selected slot into the bookings table
     for (const slot of selectedSlots) {
-      const timeInHHMMSS = `${slot.slot.time}:00`; // Append ':00' to convert to 'HH:MM:SS'
+      const timeInHHMMSS = `${slot.time}:00`; // Append ':00' to convert to 'HH:MM:SS'
       timeSlotsArr.push(timeInHHMMSS);
     }
     const bookingQuery = `
@@ -419,9 +413,9 @@ router.post("/admin", async (req, res) => {
   `;
 
     const bookingValues = [
-      Number(userId), // Assuming this is the admin ID
+      Number(court.admin_id), // Assuming this is the admin ID
       court__id,
-      selectedSlots[0].date, // Assuming selectedDate is in the correct date format
+      selectedDate, // Assuming selectedDate is in the correct date format
       timeSlotsArr, // slot.time should be in 'HH:MM:SS' format
       Number(userId), // Passing userId to record which user made the booking
       transaction_id,
