@@ -55,14 +55,14 @@ const getBookingsByAdminId = async (
       JOIN courts ON bookings.court_id = courts.id
       JOIN court_details ON courts.id = court_details.court_id
       WHERE bookings.admin_id = $1 
-      AND bookings.booking_date = NOW()
+      AND bookings.booking_date = CURRENT_DATE
     ) AS total_count
   FROM bookings
   JOIN booking_details ON bookings.booking_detail_id = booking_details.id
   JOIN courts ON bookings.court_id = courts.id
   JOIN court_details ON courts.id = court_details.court_id
   WHERE bookings.admin_id = $1 
-  AND bookings.booking_date = NOW()
+  AND bookings.booking_date = CURRENT_DATE
   LIMIT $2 OFFSET $3
 `;
 
@@ -111,14 +111,14 @@ const getBookingsByAdminId = async (
       JOIN courts ON bookings.court_id = courts.id
       JOIN court_details ON courts.id = court_details.court_id
       WHERE bookings.admin_id = $1 
-      AND bookings.booking_date < NOW()
+      AND bookings.booking_date < CURRENT_DATE
     ) AS total_count
   FROM bookings
   JOIN booking_details ON bookings.booking_detail_id = booking_details.id
   JOIN courts ON bookings.court_id = courts.id
   JOIN court_details ON courts.id = court_details.court_id
   WHERE bookings.admin_id = $1 
-  AND bookings.booking_date < NOW()
+  AND bookings.booking_date < CURRENT_DATE
   LIMIT $2 OFFSET $3
 `;
 
@@ -167,14 +167,14 @@ const getBookingsByAdminId = async (
       JOIN courts ON bookings.court_id = courts.id
       JOIN court_details ON courts.id = court_details.court_id
       WHERE bookings.admin_id = $1 
-      AND bookings.booking_date > NOW()
+      AND bookings.booking_date > CURRENT_DATE
     ) AS total_count
   FROM bookings
   JOIN booking_details ON bookings.booking_detail_id = booking_details.id
   JOIN courts ON bookings.court_id = courts.id
   JOIN court_details ON courts.id = court_details.court_id
   WHERE bookings.admin_id = $1 
-  AND bookings.booking_date > NOW()
+  AND bookings.booking_date > CURRENT_DATE
   LIMIT $2 OFFSET $3  
   `;
 
