@@ -11,7 +11,7 @@ const getCourtCoupons = async (req, res) => {
 
     const courtCouponsQuery = `
         SELECT coupon_code, coupon_label, percentage, amount, coupon_type, 
-        min_amount FROM court_coupons WHERE court_id = $1 
+        min_amount FROM court_coupons WHERE (court_id = $1 OR court_id IS  NULL)
         AND start_time <= NOW() AND end_time >= NOW() AND status = TRUE`;
 
     const courtCouponsRes = await db.query(courtCouponsQuery, [court_Id]);

@@ -101,6 +101,14 @@ const getBookingsByUserId = async (userId, limit, offset) => {
       'advance_pay', court_details.advance_pay,
       'images', court_details.images
     ) as court_details,
+    CASE WHEN court_reviews.transaction_id IS NOT NULL THEN
+      json_build_object(
+        'title', court_reviews.title,
+        'description', court_reviews.description,
+        'rating', court_reviews.rating,
+        'status', court_reviews.status,
+        'transaction_id', court_reviews.transaction_id
+      ) ELSE NULL END as court_reviews,
     (
       SELECT COUNT(*) 
       FROM bookings
@@ -114,6 +122,7 @@ const getBookingsByUserId = async (userId, limit, offset) => {
   JOIN booking_details ON bookings.booking_detail_id = booking_details.id
   JOIN courts ON bookings.court_id = courts.id
   JOIN court_details ON courts.id = court_details.court_id
+  LEFT JOIN court_reviews ON bookings.transaction_id = court_reviews.transaction_id
   WHERE bookings.user_id = $1 
   AND bookings.booking_date < CURRENT_DATE
   LIMIT $2 OFFSET $3

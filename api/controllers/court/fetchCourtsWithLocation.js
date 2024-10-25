@@ -36,7 +36,7 @@ const fetchCourtsWithLocation = async (req, res) => {
           SELECT COUNT(*) 
           FROM court_details 
           JOIN courts ON courts.id = court_details.court_id
-          WHERE city = $1 
+          WHERE city = $1 AND APPROVED = TRUE
           AND ($2::VARCHAR IS NULL OR courts.court_type = $2::VARCHAR)   -- Cast to VARCHAR
           AND ($3::VARCHAR IS NULL OR LOWER(courts.court_name) LIKE LOWER($3::VARCHAR))  -- Cast to VARCHAR
           AND ($4::BIGINT IS NULL OR price >= $4::BIGINT)                       -- Cast to BIGINT
@@ -46,7 +46,7 @@ const fetchCourtsWithLocation = async (req, res) => {
         ) AS total_count
       FROM court_details 
       JOIN courts ON courts.id = court_details.court_id
-      WHERE city = $1 
+      WHERE city = $1 AND APPROVED = TRUE
       AND ($2::VARCHAR IS NULL OR courts.court_type = $2::VARCHAR)   -- Cast to VARCHAR
       AND ($3::VARCHAR IS NULL OR LOWER(courts.court_name) LIKE LOWER($3::VARCHAR))    -- Cast to VARCHAR
       AND ($4::BIGINT IS NULL OR price >= $4::BIGINT)                         -- Cast to BIGINT

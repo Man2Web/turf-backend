@@ -1,20 +1,10 @@
 const db = require("../../../config/database");
 
-const getCoupons = async (req, res) => {
+const superAdminCoupons = async (req, res) => {
   const { adminId } = req.params;
-
   try {
     const getCouponsQuery = await db.query(
-      `
-        SELECT court_coupons.*,
-          json_build_object(
-              'court_id', courts.court_id,
-              'admin_id', courts.admin_id,
-              'court_name', courts.court_name,
-              'court_type', courts.court_type
-          ) AS court_info
-        FROM court_coupons
-        LEFT JOIN courts ON courts.id = court_coupons.court_id
+      ` SELECT * FROM court_coupons
         WHERE court_coupons.admin_id = $1
         AND start_time <= NOW()
         AND end_time >= NOW()
@@ -30,7 +20,10 @@ const getCoupons = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
+    res.status(500).json({
+      message: "Internal Server Error",
+    });
   }
 };
 
-module.exports = getCoupons;
+module.exports = superAdminCoupons;

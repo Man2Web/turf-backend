@@ -1,14 +1,24 @@
 const db = require("../../config/database");
+const getCourtByUid = require("../court/getCourtIdByUid");
 
 const approveCourtWithId = async (req, res) => {
   const { courtId } = req.params;
   const { status } = req.body;
 
   try {
+    const getCourtID = await db.query(
+      "SELECT id FROM courts WHERE court_id = $1",
+      [courtId]
+    );
+    const court_Id = getCourtID.rows[0].id;
+    if (!court_Id) {
+      return res.status(404).json({ message: "Invalid Court ID" });
+    }
+
     const approveCourtQ = `UPDATE courts SET approved = ${
       status ? "TRUE" : "FALSE"
     } WHERE id = $1`;
-    const approveCourtR = await db.query(approveCourtQ, [courtId]);
+    const approveCourtR = await db.query(approveCourtQ, [court_Id]);
 
     // Check if the court was found and updated
     if (approveCourtR.rowCount > 0) {

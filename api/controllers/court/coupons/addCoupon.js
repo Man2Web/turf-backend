@@ -14,7 +14,6 @@ const addCoupon = async (req, res) => {
     startTime,
     endTime,
   } = req.body;
-  console.log(req.body);
 
   try {
     const court_id = await getCourtByUid(courtId);
