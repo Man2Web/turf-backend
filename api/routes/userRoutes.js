@@ -11,6 +11,9 @@ const updateWishlist = require("../controllers/users/updateWishlist");
 const getUserReview = require("../controllers/bookings/getUserReview");
 const addUserReview = require("../controllers/bookings/addUserReview");
 const updateUserReview = require("../controllers/bookings/updateUserReview");
+const forgotPassword = require("../controllers/users/forgotPassword");
+const checkResetToken = require("../controllers/users/checkResetToken");
+const resetPassword = require("../controllers/users/resetPassword");
 const router = express.Router();
 
 router.post("/addUser", addUser);
@@ -22,6 +25,12 @@ router.get("/booking/:userId", fetchBookingsWithUserId);
 router.get("/review/:courtId/:T_Id", getUserReview);
 
 router.post("/review/add/:courtId/:T_Id", addUserReview);
+
+router.get("/forgot/:email", forgotPassword);
+
+router.get("/token/:token", checkResetToken);
+
+router.post("/password/reset", resetPassword);
 
 router.put("/review/update/:courtId/:T_Id", updateUserReview);
 

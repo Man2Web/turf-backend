@@ -597,7 +597,7 @@
                                     "
                                   >
                                     <img
-                                      src="https://pouch.jumpshare.com/preview/xqF5rOxhtNrU8DkLTgUW7a1ANqP0GRTPRn93FFmLS-sPJzu7iVRUk3OjC8w5b35LqSji7SCW-hSpv7WEIqeV_xz4B3tAaJ4sbMQbPVXnkiE"
+                                      src="https://res.cloudinary.com/dkletqozr/image/upload/v1730190650/4267B2_Logo_izqrog.png"
                                       alt="Logo"
                                       width="200"
                                       title="Logo"
@@ -609,8 +609,9 @@
                                         outline: none;
                                         text-decoration: none;
                                         border-radius: 0;
+                                        max-width: 100%;
+                                        height: auto;
                                       "
-                                      height="130"
                                     />
                                   </td>
                                 </tr>
@@ -895,7 +896,7 @@
                                           >
                                             <strong>
                                               <%=
-                                              bookingData.courtdata.court_name
+                                              bookingData.court_info.court_name
                                               %>
                                             </strong>
                                           </p>
@@ -924,7 +925,7 @@
                                             "
                                           >
                                             Court ID: <%=
-                                            bookingData.courtdata.court_id %>
+                                            bookingData.court_info.court_id %>
                                             <br />
                                           </p>
                                           <p
@@ -943,7 +944,7 @@
                                             Email:
                                             <a
                                               target="_blank"
-                                              href="mailto:<%= bookingData.courtdata.email %>?subject=Booking Query&body=I have doubt in regard to the booking of my court."
+                                              href="mailto:<%= bookingData.court_details.email %>?subject=Booking Query&body=I have doubt in regard to the booking of my court."
                                               style="
                                                 mso-line-height-rule: exactly;
                                                 text-decoration: underline;
@@ -951,7 +952,8 @@
                                                 font-size: 14px;
                                               "
                                             >
-                                              <%= bookingData.courtdata.email %>
+                                              <%=
+                                              bookingData.court_details.email %>
                                             </a>
                                           </p>
                                           <p
@@ -970,7 +972,7 @@
                                             Phone:
                                             <a
                                               target="_blank"
-                                              href="tel:<%= bookingData.courtdata.phone_number %>"
+                                              href="tel:<%= bookingData.court_details.phone_number %>"
                                               style="
                                                 mso-line-height-rule: exactly;
                                                 text-decoration: underline;
@@ -979,7 +981,7 @@
                                               "
                                             >
                                               <%=
-                                              bookingData.courtdata.phone_number
+                                              bookingData.court_details.phone_number
                                               %>
                                             </a>
                                           </p>
@@ -999,7 +1001,7 @@
                                             Location:
                                             <a
                                               target="_blank"
-                                              href="<%= bookingData.locationdata.location_link %>"
+                                              href="<%= bookingData.court_details.location_link %>"
                                               style="
                                                 mso-line-height-rule: exactly;
                                                 text-decoration: underline;
@@ -1379,8 +1381,7 @@
                                           "
                                         >
                                           <% if
-                                          (bookingData.bookingdetailsdata.pg_tid)
-                                          { %>
+                                          (bookingData.booking_info.pg_tid) { %>
                                           <p
                                             style="
                                               margin: 0;
@@ -1395,8 +1396,7 @@
                                             "
                                           >
                                             PG Transaction ID:&nbsp;<%=
-                                            bookingData.bookingdetailsdata.pg_tid
-                                            %>
+                                            bookingData.booking_info.pg_tid %>
                                           </p>
                                           <% } %>
                                           <p
@@ -1417,7 +1417,7 @@
                                             : 'Offline' %>
                                           </p>
                                           <% if
-                                          (bookingData.bookingdetailsdata.payment_type)
+                                          (bookingData.booking_info.payment_type)
                                           { %>
                                           <p
                                             style="
@@ -1433,12 +1433,12 @@
                                             "
                                           >
                                             Payment Type: <%=
-                                            bookingData.bookingdetailsdata.payment_type
+                                            bookingData.booking_info.payment_type
                                             %>
                                           </p>
                                           <% } %> <% if
-                                          (bookingData.bookingdetailsdata.card_type)
-                                          { %>
+                                          (bookingData.booking_info.card_type) {
+                                          %>
                                           <p
                                             style="
                                               margin: 0;
@@ -1453,12 +1453,12 @@
                                             "
                                           >
                                             Card Type: <%=
-                                            bookingData.bookingdetailsdata.card_type
+                                            bookingData.booking_info.card_type
                                             %>
                                           </p>
                                           <% } %> <% if
-                                          (bookingData.bookingdetailsdata.bank_id)
-                                          { %>
+                                          (bookingData.booking_info.bank_id) {
+                                          %>
                                           <p
                                             style="
                                               margin: 0;
@@ -1473,8 +1473,7 @@
                                             "
                                           >
                                             Bank ID: <%=
-                                            bookingData.bookingdetailsdata.bank_id
-                                            %>
+                                            bookingData.booking_info.bank_id %>
                                           </p>
                                           <% } %>
                                           <p
