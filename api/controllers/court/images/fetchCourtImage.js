@@ -7,7 +7,7 @@ const fetchCourtImage = (req, res) => {
   // Define the path to the image based on courtId and imageName
   const imagePath = path.join(
     __dirname,
-    "..",
+    "../../../",
     "uploads",
     adminId,
     courtId,

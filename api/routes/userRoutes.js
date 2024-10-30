@@ -13,6 +13,7 @@ const updateUserReview = require("../controllers/bookings/updateUserReview");
 const forgotPassword = require("../controllers/users/forgotPassword");
 const checkResetToken = require("../controllers/users/checkResetToken");
 const resetPassword = require("../controllers/users/resetPassword");
+const getUserData = require("../controllers/users/getUserData");
 
 router.post("/addUser", addUser);
 
@@ -33,6 +34,8 @@ router.post("/password/reset", resetPassword);
 router.put("/review/update/:courtId/:T_Id", updateUserReview);
 
 router.get("/get/:id", getUser);
+
+router.get("/user-data/:userId", getUserData);
 
 router.put("/update/:id", updateUser);
 

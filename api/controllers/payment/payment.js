@@ -3,6 +3,7 @@ const axios = require("axios");
 const getCourtByUid = require("../court/getCourtIdByUid");
 const saveBookingData = require("../../models/bookings/saveBookingData");
 const saveUserBookingData = require("../../models/bookings/saveUserBookingData");
+const saveUserData = require("../../models/bookings/saveUserData");
 
 const payment = async (req, res) => {
   const {
@@ -18,6 +19,7 @@ const payment = async (req, res) => {
     courtId,
     user_id,
     courtDuration,
+    dataConfirmation,
   } = req.body;
 
   const demo_merchant_Id = process.env.DEMO_MERCHANT_ID;
@@ -28,6 +30,11 @@ const payment = async (req, res) => {
     if (!court__id) {
       return res.status(404).json({ message: "Court not found" });
     }
+
+    if (dataConfirmation) {
+      await saveUserData(userDetails, user_id);
+    }
+
     const bookingDetailsId = await saveUserBookingData(userDetails);
 
     await saveBookingData(
