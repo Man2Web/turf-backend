@@ -1,4 +1,4 @@
-const db = require("../config/database");
+const db = require("../../config/database");
 
 const getAdmins = async (req, res) => {
   try {
@@ -9,6 +9,4 @@ const getAdmins = async (req, res) => {
   }
 };
 
-module.exports = {
-  getAdmins,
-};
+module.exports = getAdmins;

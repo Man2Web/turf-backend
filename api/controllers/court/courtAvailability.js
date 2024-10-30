@@ -51,4 +51,4 @@ const courtAvailability = async (req, res) => {
   }
 };
 
-module.exports = { courtAvailability };
+module.exports = courtAvailability;

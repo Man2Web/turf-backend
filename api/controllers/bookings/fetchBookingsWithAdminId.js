@@ -3,7 +3,7 @@ const {
 } = require("../../models/bookings/getBookingsByAdminId");
 const {
   checkIfUserIsAdminWithId,
-} = require("../../models/checkIfUserIsAdminWithId");
+} = require("../../models/admin/checkIfUserIsAdminWithId");
 
 const fetchBookingsWithAdminId = async (req, res) => {
   const { adminId } = req.params;
@@ -49,4 +49,4 @@ const fetchBookingsWithAdminId = async (req, res) => {
   });
 };
 
-module.exports = { fetchBookingsWithAdminId };
+module.exports = fetchBookingsWithAdminId;

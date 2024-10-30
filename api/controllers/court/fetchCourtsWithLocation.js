@@ -91,4 +91,4 @@ const fetchCourtsWithLocation = async (req, res) => {
   }
 };
 
-module.exports = { fetchCourtsWithLocation };
+module.exports = fetchCourtsWithLocation;

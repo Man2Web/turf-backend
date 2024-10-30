@@ -1,6 +1,6 @@
 const {
   checkIfUserIsAdminWithId,
-} = require("../../models/checkIfUserIsAdminWithId");
+} = require("../../models/admin/checkIfUserIsAdminWithId");
 const getUserData = require("../../models/users/getUserData");
 const db = require("../../config/database"); // Assuming you have a db instance to run SQL queries
 
@@ -29,8 +29,6 @@ const updateMid = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    console.log(result);
-
     // Return a success response
     return res.status(200).json({ message: "mid updated successfully" });
   } catch (error) {
@@ -39,4 +37,4 @@ const updateMid = async (req, res) => {
   }
 };
 
-module.exports = { updateMid };
+module.exports = updateMid;

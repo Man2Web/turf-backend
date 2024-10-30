@@ -1,12 +1,11 @@
 const express = require("express");
-const { addUser } = require("../controllers/users/addUser");
-const { getUser } = require("../controllers/users/getUser");
+const router = express.Router();
+const addUser = require("../controllers/users/addUser");
+const getUser = require("../controllers/users/getUser");
 const updateUser = require("../controllers/users/updateUser");
 const updatePass = require("../controllers/users/updatePass");
-const { updateMid } = require("../controllers/users/updateMid");
-const {
-  fetchBookingsWithUserId,
-} = require("../controllers/bookings/fetchBookingsUser");
+const updateMid = require("../controllers/users/updateMid");
+const fetchBookingsWithUserId = require("../controllers/bookings/fetchBookingsUser");
 const updateWishlist = require("../controllers/users/updateWishlist");
 const getUserReview = require("../controllers/bookings/getUserReview");
 const addUserReview = require("../controllers/bookings/addUserReview");
@@ -14,7 +13,6 @@ const updateUserReview = require("../controllers/bookings/updateUserReview");
 const forgotPassword = require("../controllers/users/forgotPassword");
 const checkResetToken = require("../controllers/users/checkResetToken");
 const resetPassword = require("../controllers/users/resetPassword");
-const router = express.Router();
 
 router.post("/addUser", addUser);
 

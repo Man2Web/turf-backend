@@ -38,4 +38,4 @@ const fetchBookingsWithUserId = async (req, res) => {
   });
 };
 
-module.exports = { fetchBookingsWithUserId };
+module.exports = fetchBookingsWithUserId;

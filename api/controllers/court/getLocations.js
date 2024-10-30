@@ -14,4 +14,4 @@ const getLocations = async (req, res) => {
   }
 };
 
-module.exports = { getLocations };
+module.exports = getLocations;

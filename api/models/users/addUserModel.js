@@ -1,4 +1,4 @@
-const db = require("../config/database");
+const db = require("../../config/database");
 
 const addUserModel = async (username, email, password) => {
   try {
@@ -13,4 +13,4 @@ const addUserModel = async (username, email, password) => {
   }
 };
 
-module.exports = { addUserModel };
+module.exports = addUserModel;

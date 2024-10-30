@@ -140,4 +140,4 @@ const editCourt = async (req, res) => {
   }
 };
 
-module.exports = { editCourt, upload };
+module.exports = editCourt;

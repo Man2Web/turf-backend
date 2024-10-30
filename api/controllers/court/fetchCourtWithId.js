@@ -1,8 +1,8 @@
-const db = require("../config/database");
-const convertCourtData = require("../services/convertCourtData");
+const db = require("../../config/database");
+const getCourtByUid = require("./getCourtIdByUid");
 
-const fetchCourt = async (req, res) => {
-  const adminId = req.params.id;
+const fetchCourtWithId = async (req, res) => {
+  const { adminId, courtId } = req.params;
 
   if (!adminId) {
     return res.status(404).json({ message: "You don't have the permission" });
@@ -16,13 +16,12 @@ const fetchCourt = async (req, res) => {
             'court_id', courts.court_id,           -- corrected from courts.court_id to courts.id
             'admin_id', courts.admin_id,
             'court_name', courts.court_name,
-            'court_type', courts.court_type,
-            'approved', courts.approved
+            'court_type', courts.court_type
           ) AS court_info
        FROM courts 
        JOIN court_details ON court_details.court_id = courts.id 
-       WHERE courts.admin_id = $1`,
-      [adminId]
+       WHERE courts.admin_id = $1 AND courts.court_id = $2`,
+      [adminId, courtId]
     );
 
     // Check if any courts are found
@@ -30,18 +29,12 @@ const fetchCourt = async (req, res) => {
       return res.status(404).json({ message: "No courts found for this user" });
     }
 
-    const courts = [];
-
-    // Loop through all the courts and fetch related data
-    for (const court of getCourtDataQuery.rows) {
-      const convertedCourtData = convertCourtData(court, court.court_name);
-      courts.push(convertedCourtData);
-    }
+    const court = getCourtDataQuery.rows[0];
 
     // Send back the courts data
     res.status(200).json({
       message: "Success",
-      courtsData: courts,
+      courtData: court,
     });
   } catch (error) {
     console.error("Error fetching court:", error);
@@ -49,4 +42,4 @@ const fetchCourt = async (req, res) => {
   }
 };
 
-module.exports = { fetchCourt };
+module.exports = fetchCourtWithId;

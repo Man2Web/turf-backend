@@ -1,8 +1,7 @@
-const db = require("../config/database");
 const {
   checkIfUserIsAdminWithId,
-} = require("../models/checkIfUserIsAdminWithId");
-const { removeCourtWithId } = require("../models/removeCourtWithId");
+} = require("../../models/admin/checkIfUserIsAdminWithId");
+const { removeCourtWithId } = require("../../models/admin/removeCourtWithId");
 
 const deleteCourt = async (req, res) => {
   const { courtId, adminId } = req.params;
@@ -21,4 +20,4 @@ const deleteCourt = async (req, res) => {
   }
 };
 
-module.exports = { deleteCourt };
+module.exports = deleteCourt;

@@ -1,5 +1,5 @@
-const db = require("../config/database");
-const convertCourtData = require("../services/convertCourtData");
+const db = require("../../config/database");
+const convertCourtData = require("../../services/convertCourtData");
 
 const fetchCourtWithCourtId = async (req, res) => {
   const { courtId } = req.params;
@@ -48,4 +48,4 @@ const fetchCourtWithCourtId = async (req, res) => {
   }
 };
 
-module.exports = { fetchCourtWithCourtId };
+module.exports = fetchCourtWithCourtId;

@@ -1,4 +1,4 @@
-const db = require("../config/database");
+const db = require("../../config/database");
 
 const addAdminUser = async (username, email, password) => {
   try {
@@ -14,4 +14,4 @@ const addAdminUser = async (username, email, password) => {
 };
 
 // Export it correctly as an object
-module.exports = { addAdminUser };
+module.exports = addAdminUser;
