@@ -16,7 +16,7 @@ const authentication = require("./api/routes/authentication");
 const adminRoutes = require("./api/routes/adminRoutes");
 const courtRoutes = require("./api/routes/courtRoutes");
 const userRoutes = require("./api/routes/userRoutes");
-const paymentRoutes = require("./api/routes/paymentRoutes");
+const paymentRoutes = require("./api/routes/paymentRoutes copy");
 const bookingRoutes = require("./api/routes/bookingRoutes");
 const superAdminRoutes = require("./api/routes/superAdminRoutes");
 

@@ -1,16 +1,15 @@
 const crypto = require("crypto");
 const axios = require("axios");
-
-const demo_merchant_Id = "PGTESTPAYUAT86"; // Example Merchant ID
-const salt_key = "96434309-7796-489d-8924-ab56988a6076"; // Example Salt Key
+const db = require("../../config/database");
+const { bookingDetails } = require("../../models/payment/bookingDetails");
 
 const status = async (req, res) => {
   const merchantTransactionId = req.query.id;
-  const merchantId = demo_merchant_Id;
-
+  const merchantId = process.env.DEMO_MERCHANT_ID;
   const keyIndex = 1;
   const string =
-    `/pg/v1/status/${merchantId}/${merchantTransactionId}` + salt_key;
+    `/pg/v1/status/${merchantId}/${merchantTransactionId}` +
+    process.env.DEMO_SALT_KEY;
   const sha256 = crypto.createHash("sha256").update(string).digest("hex");
   const checksum = sha256 + "###" + keyIndex;
 
@@ -26,20 +25,41 @@ const status = async (req, res) => {
   };
 
   // CHECK PAYMENT TATUS
-  axios
-    .request(options)
-    .then(async (response) => {
-      if (response.data.success === true) {
-        const url = `http://localhost:3001/booking/success`;
-        return res.redirect(url);
-      } else {
-        const url = `http://localhost:3001/booking/failure`;
-        return res.redirect(url);
-      }
-    })
-    .catch((error) => {
-      console.error(error);
-    });
+  try {
+    const response = await axios.request(options);
+    if (response.data.success === true) {
+      const transaction_id = response.data.data.merchantTransactionId;
+      const { type, pgTransactionId, cardType, bankId } =
+        response.data.data.paymentInstrument;
+
+      await db.query("BEGIN");
+
+      const getUserBookingDetailsId = await db.query(
+        "UPDATE bookings SET status = TRUE where transaction_id = $1 RETURNING booking_detail_id",
+        [transaction_id]
+      );
+      await db.query(
+        "UPDATE booking_details SET payment_type = $1, pg_type = $2, card_type = $3, bank_id = $4 WHERE id = $5 RETURNING email",
+        [
+          type || null,
+          pgTransactionId || null,
+          cardType || null,
+          bankId || null,
+          getUserBookingDetailsId.rows[0].booking_detail_id,
+        ]
+      );
+      await db.query("COMMIT");
+      await bookingDetails(transaction_id);
+      const url = `${process.env.WEBSITE_URL}booking/success/${transaction_id}`;
+      return res.redirect(url);
+    } else {
+      await db.query("ROLLBACK");
+      const url = `${process.env.WEBSITE_URL}booking/failure`;
+      return res.redirect(url);
+    }
+  } catch (error) {
+    console.error(error);
+  }
 };
 
-module.exports = { status };
+module.exports = status;

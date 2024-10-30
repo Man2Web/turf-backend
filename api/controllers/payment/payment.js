@@ -1,63 +1,54 @@
 const crypto = require("crypto");
 const axios = require("axios");
-
-// Exponential backoff function to handle retries for rate-limited requests
-async function makeRequestWithBackoff(
-  url,
-  headers,
-  data,
-  retries = 5,
-  backoff = 1000
-) {
-  try {
-    const response = await axios.post(url, data, { headers });
-    return response.data;
-  } catch (error) {
-    if (error.response && error.response.status === 429 && retries > 0) {
-      console.log(`Rate limit exceeded. Retrying in ${backoff}ms...`);
-      await new Promise((resolve) => setTimeout(resolve, backoff));
-      return makeRequestWithBackoff(
-        url,
-        headers,
-        data,
-        retries - 1,
-        backoff * 2
-      );
-    } else {
-      throw error; // Rethrow the error if it's not a 429 or retries are exhausted
-    }
-  }
-}
+const getCourtByUid = require("../court/getCourtIdByUid");
+const saveBookingData = require("../../models/bookings/saveBookingData");
+const saveUserBookingData = require("../../models/bookings/saveUserBookingData");
 
 const payment = async (req, res) => {
   const {
     name,
     amount,
+    amountTobePaid,
     number,
     transactionId,
     MUID,
     userDetails,
     selectedDate,
     selectedSlots,
+    courtId,
+    user_id,
+    courtDuration,
   } = req.body;
-  const {} = req.body;
-  console.log(req.body);
-  const demo_merchant_Id = "PGTESTPAYUAT86"; // Example Merchant ID
-  //   "PGTESTPAYUAT86"
-  const salt_key = "96434309-7796-489d-8924-ab56988a6076"; // Example Salt Key
-  //   "96434309-7796-489d-8924-ab56988a6076"
+
+  const demo_merchant_Id = process.env.DEMO_MERCHANT_ID;
+  const demo_salt_key = process.env.DEMO_SALT_KEY;
+
   try {
-    // Prepare data for PhonePe API request
-    const merchant_id = demo_merchant_Id;
-    const merchantTransactionId = transactionId;
+    let court__id = await getCourtByUid(courtId);
+    if (!court__id) {
+      return res.status(404).json({ message: "Court not found" });
+    }
+    const bookingDetailsId = await saveUserBookingData(userDetails);
+
+    await saveBookingData(
+      court__id,
+      selectedDate,
+      selectedSlots,
+      user_id,
+      transactionId,
+      bookingDetailsId,
+      amount,
+      courtDuration,
+      amountTobePaid
+    );
 
     const data = {
-      merchantId: merchant_id,
-      merchantTransactionId: merchantTransactionId,
+      merchantId: demo_merchant_Id, // We need to chagne this to live one.
+      merchantTransactionId: transactionId,
       merchantUserId: MUID,
       name: name,
       amount: amount * 100, // Amount in paise
-      redirectUrl: `http://localhost:4000/payment/status/?id=${merchantTransactionId}`,
+      redirectUrl: `${process.env.BACKEND_URL}payment/status/?id=${transactionId}`,
       redirectMode: "POST",
       mobileNumber: number,
       paymentInstrument: {
@@ -71,14 +62,13 @@ const payment = async (req, res) => {
 
     // Generate checksum using SHA256
     const keyIndex = 1;
-    const stringToHash = payloadMain + "/pg/v1/pay" + salt_key;
+    const stringToHash = payloadMain + "/pg/v1/pay" + demo_salt_key;
     const sha256 = crypto
       .createHash("sha256")
       .update(stringToHash)
       .digest("hex");
     const checksum = sha256 + "###" + keyIndex;
 
-    // API endpoint (sandbox or production)
     const prod_URL =
       "https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/pay";
 
@@ -100,17 +90,10 @@ const payment = async (req, res) => {
       requestedBookingDetails: userBookingRequest,
     };
 
-    // Make the request using the retry strategy with exponential backoff
-    const response = await makeRequestWithBackoff(
-      prod_URL,
-      headers,
-      requestData
-    );
-
-    console.log(response);
+    const response = await axios.post(prod_URL, requestData, { headers });
 
     // Return the response from PhonePe API to the client
-    // return res.status(200).json(response);
+    return res.status(200).json(response.data);
   } catch (error) {
     console.error("Payment error:", error);
     return res.status(500).json({
@@ -120,4 +103,4 @@ const payment = async (req, res) => {
   }
 };
 
-module.exports = { payment };
+module.exports = payment;
