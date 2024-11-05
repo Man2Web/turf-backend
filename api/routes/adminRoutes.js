@@ -8,15 +8,15 @@ const fetchCourtWithId = require("../controllers/court/fetchCourtWithId");
 const fetchBookingsWithAdminId = require("../controllers/bookings/fetchBookingsWithAdminId");
 const deleteCourt = require("../controllers/court/deleteCourt");
 const fetchCourtImage = require("../controllers/court/images/fetchCourtImage");
+const authMiddleware = require("../middlewares/auth/authMiddleware");
 
-// This file is not found need to check later.
 router.get("/admins", getAdmins);
 
 router.post("/addAdmin", addAdmin);
 
 router.post("/auth", authAdmin);
 
-router.get("/booking/:adminId", fetchBookingsWithAdminId);
+router.get("/booking/:adminId", authMiddleware, fetchBookingsWithAdminId);
 
 router.get("/court/fetch/:id", fetchCourt);
 

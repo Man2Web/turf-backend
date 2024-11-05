@@ -15,7 +15,7 @@ const forgotPassword = async (req, res) => {
       "SELECT * FROM pass_reset WHERE user_id = $1",
       [userDetails.rows[0].id]
     );
-    if (checkIfAlreadyExists.rows.length > 0) {
+    if (checkIfAlreadyExists.rows.length >= 3) {
       return res.status(409).json({
         message:
           "Link has already been sent to the user email to reset the password",

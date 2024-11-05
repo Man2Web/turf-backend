@@ -108,9 +108,8 @@ const bookingDetails = async (transaction_id, pdf) => {
           throw new Error("Failed to send email.");
         }
       };
-
       // Call sendEmail after defining it
-      await sendEmail(bookingData.booking_details.email, emailConfirmation);
+      await sendEmail(bookingData.booking_info.email, emailConfirmation);
     } else {
       const emailConfirmation = await ejs.renderFile(
         path.join(__dirname, "../../types/emailConfirmation.ejs"),

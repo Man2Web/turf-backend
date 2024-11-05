@@ -19,8 +19,6 @@ const authUser = async (req, res) => {
 
     const user = userResult.rows[0];
 
-    console.log(user);
-
     // Check if user has a password and that it matches
     if (!user.password) {
       return res
@@ -35,15 +33,24 @@ const authUser = async (req, res) => {
       return res.status(401).json({ message: "Invalid password" });
     }
 
+    // Set cookie options
+    const cookieOptions = {
+      httpOnly: true, // Prevents JavaScript from accessing the cookie
+      secure: process.env.NODE_ENV === "production", // Ensures cookie is sent over HTTPS in production
+      sameSite: "Strict", // Helps prevent CSRF attacks (can be 'Lax' or 'Strict')
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 15 minutes in milliseconds
+    };
+
     // Generate JWT (replace 'yourSecretKey' with your actual secret key)
     const token = jwt.sign(
-      { userId: user.id, email: user.email }, // Payload data
-      process.env.JWT_SECRET, // Secret key
-      { expiresIn: "1h" } // Token expiration time
+      { userId: user.id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
     );
-
     // Check if the user is an admin (assuming a column 'is_admin' exists)
     if (user.admin) {
+      res.cookie("accessToken", token, cookieOptions);
+
       return res.status(200).json({
         message: "Authenticated as Admin",
         token: token, // Send the JWT
@@ -51,6 +58,8 @@ const authUser = async (req, res) => {
         role: "admin",
       });
     } else {
+      res.cookie("accessToken", token, cookieOptions);
+
       return res.status(200).json({
         message: "Authenticated as User",
         token: token, // Send the JWT

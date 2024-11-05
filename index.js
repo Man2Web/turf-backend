@@ -4,7 +4,13 @@ const path = require("path");
 const cors = require("cors");
 require("dotenv").config();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.WEBSITE_URL_BASE,
+    credentials: true,
+  })
+);
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));

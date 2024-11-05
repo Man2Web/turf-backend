@@ -1,5 +1,5 @@
 const express = require("express");
-const authMiddleware = require("../middlewares/authMiddleware");
+const authMiddleware = require("../middlewares/auth/authMiddleware");
 const router = express();
 
 router.post("/", authMiddleware, (req, res) => {
