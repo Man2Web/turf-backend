@@ -45,7 +45,6 @@ const addCourt = async (req, res) => {
   }
 
   const availabilityData = convertAvailability(courtAvailability);
-
   const courtImages = req.files;
   const uploadedImages = [];
 

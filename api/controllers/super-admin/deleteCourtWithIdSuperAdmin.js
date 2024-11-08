@@ -1,11 +1,12 @@
 const db = require("../../config/database");
+const getCourtByUid = require("../court/getCourtIdByUid");
 
 const deleteCourtWithIdSuperAdmin = async (req, res) => {
   const { courtId } = req.params;
   try {
     // Check if the court exists
     const checkCourtExists = await db.query(
-      "SELECT * FROM courts WHERE id = $1",
+      "SELECT * FROM courts WHERE court_id = $1",
       [courtId]
     );
 
@@ -14,7 +15,7 @@ const deleteCourtWithIdSuperAdmin = async (req, res) => {
     }
 
     // Delete the court
-    await db.query("DELETE FROM courts WHERE id = $1", [courtId]);
+    await db.query("DELETE FROM courts WHERE court_id = $1", [courtId]);
 
     // Return success response
     return res.status(200).json({ message: "Court deleted successfully" });
