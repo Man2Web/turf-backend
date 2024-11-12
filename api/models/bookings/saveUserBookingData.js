@@ -17,7 +17,7 @@ const saveUserBookingData = async (userDetails) => {
     userDetails.country || null,
     userDetails.pincode || null,
     userDetails.numberOfGuests || null,
-    userDetails.additionalNumberOfGuests || null,
+    userDetails.additionalNumberOfGuests || 0,
     null,
     null,
     null,

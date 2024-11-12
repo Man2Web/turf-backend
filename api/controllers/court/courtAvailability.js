@@ -13,7 +13,7 @@ const courtAvailability = async (req, res) => {
     }
 
     const availabilityQuery =
-      "SELECT * FROM bookings WHERE booking_date = $1 AND court_id = $2";
+      "SELECT * FROM bookings WHERE booking_date = $1 AND court_id = $2 AND status = TRUE";
     const availabilityCheck = await db.query(availabilityQuery, [
       date,
       court_id,
