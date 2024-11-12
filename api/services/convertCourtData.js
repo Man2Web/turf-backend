@@ -25,7 +25,7 @@ const convertCourtData = (data, courtName) => {
     court_id: data.court_info.court_id,
     court_name: data.court_info.court_name, // Assuming court_name is same as id for this example
     admin_id: data.court_info.admin_id, // Assuming court_name is same as id for this example
-    court_type: "Badminton", // Replace this with the actual court type if available
+    court_type: data.court_info.court_type, // Replace this with the actual court type if available
     venue_overview: overview,
     rules_of_venue: rules,
     email,

@@ -75,7 +75,6 @@ const fetchCourtsWithLocation = async (req, res) => {
     const updatedCourtsData = courtsData.rows.map((court) => {
       return convertCourtData(court);
     });
-
     const totalDataCount = courtsData.rows[0]?.total_count || 0;
 
     res.status(200).json({
