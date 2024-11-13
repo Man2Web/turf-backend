@@ -1,0 +1,39 @@
+name: Deploy Backend to VPS
+
+on:
+  push:
+    branches:
+      - main  # Adjust based on your branch
+
+jobs:
+  build-and-deploy-backend:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Checkout code from GitHub
+    - name: Checkout Backend Code
+      uses: actions/checkout@v3
+
+    # Set up Node.js environment for backend (if you're using Node.js)
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'  # Adjust version as necessary
+
+    # Install dependencies for the backend
+    - name: Install Backend Dependencies
+      run: npm install
+
+    # Deploy to VPS via SSH
+    - name: Deploy Backend to VPS
+      uses: appleboy/ssh-action@v0.1.6
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USER }}
+        key: ${{ secrets.VPS_SSH_KEY }}
+        port: 7122  # Adjust if using a custom port
+        script: |
+          cd /var/www/backend  # Change to your backend directory
+          git pull origin main  # Pull the latest code from GitHub
+          npm install           # Install backend dependencies
+          npm run start         # Start the backend (or your backend start command)
