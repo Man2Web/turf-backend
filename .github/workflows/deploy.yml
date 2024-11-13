@@ -49,5 +49,7 @@ jobs:
           command -v npm || echo "npm not found"  # Check if npm is accessible
           npm install
 
-          # Start the backend service
-          node index.js  # or node server.js
+          # Start the backend service using pm2 (background process management)
+          pm2 start index.js --name "turf-backend"  # or pm2 start server.js
+          pm2 save  # Save the pm2 process list
+          pm2 startup  # Generate the necessary startup script
