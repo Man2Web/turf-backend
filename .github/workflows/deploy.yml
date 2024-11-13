@@ -35,5 +35,6 @@ jobs:
         script: |
           cd /var/www/back-end/turf-backend  # Change to your backend directory
           git pull origin main  # Pull the latest code from GitHub
+          git reset --hard origin/main
           npm install           # Install backend dependencies
           npm run start         # Start the backend (or your backend start command)
