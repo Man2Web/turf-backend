@@ -50,4 +50,4 @@ jobs:
           npm install
 
           # Start the backend service
-          npm run start
+          node index.js  # or node server.js
