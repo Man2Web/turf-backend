@@ -33,7 +33,7 @@ jobs:
         key: ${{ secrets.VPS_SSH_KEY }}
         port: 7122  # Adjust if using a custom port
         script: |
-          cd /var/www/backend  # Change to your backend directory
+          cd /var/www/back-end  # Change to your backend directory
           git pull origin main  # Pull the latest code from GitHub
           npm install           # Install backend dependencies
           npm run start         # Start the backend (or your backend start command)
