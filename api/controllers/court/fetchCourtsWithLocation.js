@@ -30,7 +30,8 @@ const fetchCourtsWithLocation = async (req, res) => {
           'court_id', courts.court_id,
           'admin_id', courts.admin_id,
           'court_name', courts.court_name,
-          'court_type', courts.court_type
+          'court_type', courts.court_type,
+          'featured', courts.featured
         ) AS court_info,
         (
           SELECT COUNT(*) 
