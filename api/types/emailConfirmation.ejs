@@ -747,38 +747,10 @@
                                           font-family: verdana, geneva,
                                             sans-serif;
                                         "
-                                        href=""
+                                        href="<%= process.env.WEBSITE_URL %>booking/success/<%= transaction_id %>"
                                         ><%= transaction_id %></a
                                       >
                                     </h3>
-                                  </td>
-                                </tr>
-                                <tr>
-                                  <td
-                                    align="center"
-                                    class="es-m-p0r es-m-p0l"
-                                    style="
-                                      margin: 0;
-                                      padding-top: 5px;
-                                      padding-right: 40px;
-                                      padding-bottom: 5px;
-                                      padding-left: 40px;
-                                    "
-                                  >
-                                    <p
-                                      style="
-                                        margin: 0;
-                                        mso-line-height-rule: exactly;
-                                        font-family: verdana, geneva, sans-serif;
-                                        line-height: 21px;
-                                        letter-spacing: 0;
-                                        color: #333333;
-                                        font-size: 14px;
-                                      "
-                                    >
-                                      Booked On: <%=
-                                      formatDate(bookingData.booked_on) %>
-                                    </p>
                                   </td>
                                 </tr>
                                 <tr>
@@ -918,30 +890,36 @@
                                               font-family: arial,
                                                 'helvetica neue', helvetica,
                                                 sans-serif;
+                                              display: flex;
+                                              align-items: center;
+                                              gap: 4px;
                                               line-height: 21px;
                                               letter-spacing: 0;
                                               color: #333333;
                                               font-size: 14px;
                                             "
                                           >
-                                            Court ID: <%=
-                                            bookingData.court_info.court_id %>
-                                            <br />
-                                          </p>
-                                          <p
-                                            style="
-                                              margin: 0;
-                                              mso-line-height-rule: exactly;
-                                              font-family: arial,
-                                                'helvetica neue', helvetica,
-                                                sans-serif;
-                                              line-height: 21px;
-                                              letter-spacing: 0;
-                                              color: #333333;
-                                              font-size: 14px;
-                                            "
-                                          >
-                                            Email:
+                                            <svg
+                                              xmlns="http://www.w3.org/2000/svg"
+                                              viewBox="0 0 24 24"
+                                              width="14"
+                                              height="14"
+                                              color="#000000"
+                                              fill="none"
+                                            >
+                                              <path
+                                                d="M2 6L8.91302 9.91697C11.4616 11.361 12.5384 11.361 15.087 9.91697L22 6"
+                                                stroke="currentColor"
+                                                stroke-width="1.5"
+                                                stroke-linejoin="round"
+                                              />
+                                              <path
+                                                d="M2.01577 13.4756C2.08114 16.5412 2.11383 18.0739 3.24496 19.2094C4.37608 20.3448 5.95033 20.3843 9.09883 20.4634C11.0393 20.5122 12.9607 20.5122 14.9012 20.4634C18.0497 20.3843 19.6239 20.3448 20.7551 19.2094C21.8862 18.0739 21.9189 16.5412 21.9842 13.4756C22.0053 12.4899 22.0053 11.5101 21.9842 10.5244C21.9189 7.45886 21.8862 5.92609 20.7551 4.79066C19.6239 3.65523 18.0497 3.61568 14.9012 3.53657C12.9607 3.48781 11.0393 3.48781 9.09882 3.53656C5.95033 3.61566 4.37608 3.65521 3.24495 4.79065C2.11382 5.92608 2.08114 7.45885 2.01576 10.5244C1.99474 11.5101 1.99475 12.4899 2.01577 13.4756Z"
+                                                stroke="currentColor"
+                                                stroke-width="1.5"
+                                                stroke-linejoin="round"
+                                              />
+                                            </svg>
                                             <a
                                               target="_blank"
                                               href="mailto:<%= bookingData.court_details.email %>?subject=Booking Query&body=I have doubt in regard to the booking of my court."
@@ -964,12 +942,39 @@
                                                 'helvetica neue', helvetica,
                                                 sans-serif;
                                               line-height: 21px;
+                                              display: flex;
+                                              align-items: center;
+                                              gap: 4px;
                                               letter-spacing: 0;
                                               color: #333333;
                                               font-size: 14px;
                                             "
                                           >
-                                            Phone:
+                                            <svg
+                                              xmlns="http://www.w3.org/2000/svg"
+                                              viewBox="0 0 24 24"
+                                              width="14"
+                                              height="14"
+                                              color="#000000"
+                                              fill="none"
+                                            >
+                                              <path
+                                                d="M4.74038 14.3685L6.69351 12.9816C7.24445 12.5904 7.80305 12.3282 8.44034 12.1585C9.17201 11.9636 9.5 11.5644 9.5 10.711C9.5 8.54628 14.5 8.31594 14.5 10.711C14.5 11.5644 14.828 11.9636 15.5597 12.1585C16.202 12.3295 16.7599 12.5934 17.3065 12.9816L19.2596 14.3685C20.1434 14.9961 20.5547 15.2995 20.7842 15.7819C21 16.2358 21 16.768 21 17.8324C21 19.7461 21 20.703 20.4642 21.3164C19.8152 22.0593 18.128 21.9955 17.0917 21.9955H6.90833C5.87197 21.9955 4.21909 22.0986 3.5358 21.3164C3 20.703 3 19.7461 3 17.8324C3 16.768 3 16.2358 3.21584 15.7819C3.44526 15.2995 3.85662 14.9961 4.74038 14.3685Z"
+                                                stroke="currentColor"
+                                                stroke-width="1.5"
+                                              />
+                                              <path
+                                                d="M14 17C14 18.1046 13.1046 19 12 19C10.8954 19 10 18.1046 10 17C10 15.8954 10.8954 15 12 15C13.1046 15 14 15.8954 14 17Z"
+                                                stroke="currentColor"
+                                                stroke-width="1.5"
+                                              />
+                                              <path
+                                                d="M6.96014 3.69772C5.6417 4.07415 4.69384 4.54112 3.82645 5.10455C2.45318 5.9966 1.86443 7.60404 2.02607 9.15513C2.09439 9.81068 2.62064 10.1241 3.23089 9.95455C3.69451 9.82571 4.15888 9.7003 4.61961 9.56364C5.96706 9.16397 6.28399 8.67812 6.47124 7.29885L6.96014 3.69772ZM6.96014 3.69772C10.2186 2.76743 13.7814 2.76743 17.0399 3.69772M17.0399 3.69772C18.3583 4.07415 19.3062 4.54112 20.1735 5.10455C21.5468 5.9966 22.1356 7.60404 21.9739 9.15513C21.9056 9.81068 21.3794 10.1241 20.7691 9.95455C20.3055 9.82571 19.8411 9.7003 19.3804 9.56364C18.0329 9.16397 17.716 8.67812 17.5288 7.29885L17.0399 3.69772Z"
+                                                stroke="currentColor"
+                                                stroke-width="1.5"
+                                                stroke-linejoin="round"
+                                              />
+                                            </svg>
                                             <a
                                               target="_blank"
                                               href="tel:<%= bookingData.court_details.phone_number %>"
@@ -993,12 +998,33 @@
                                                 'helvetica neue', helvetica,
                                                 sans-serif;
                                               line-height: 21px;
+                                              display: flex;
+                                              align-items: center;
+                                              gap: 4px;
                                               letter-spacing: 0;
                                               color: #333333;
                                               font-size: 14px;
                                             "
                                           >
-                                            Location:
+                                            <svg
+                                              xmlns="http://www.w3.org/2000/svg"
+                                              viewBox="0 0 24 24"
+                                              width="14"
+                                              height="14"
+                                              color="#000000"
+                                              fill="none"
+                                            >
+                                              <path
+                                                d="M13.6177 21.367C13.1841 21.773 12.6044 22 12.0011 22C11.3978 22 10.8182 21.773 10.3845 21.367C6.41302 17.626 1.09076 13.4469 3.68627 7.37966C5.08963 4.09916 8.45834 2 12.0011 2C15.5439 2 18.9126 4.09916 20.316 7.37966C22.9082 13.4393 17.599 17.6389 13.6177 21.367Z"
+                                                stroke="currentColor"
+                                                stroke-width="1.5"
+                                              />
+                                              <path
+                                                d="M15.5 11C15.5 12.933 13.933 14.5 12 14.5C10.067 14.5 8.5 12.933 8.5 11C8.5 9.067 10.067 7.5 12 7.5C13.933 7.5 15.5 9.067 15.5 11Z"
+                                                stroke="currentColor"
+                                                stroke-width="1.5"
+                                              />
+                                            </svg>
                                             <a
                                               target="_blank"
                                               href="<%= bookingData.court_details.location_link %>"
@@ -1044,8 +1070,8 @@
                         style="
                           padding: 0;
                           margin: 0;
-                          padding-right: 40px;
-                          padding-left: 40px;
+                          padding-right: 20px;
+                          padding-left: 20px;
                           padding-top: 20px;
                         "
                       >
@@ -1107,57 +1133,12 @@
                                         font-size: 14px;
                                       "
                                     >
-                                      <strong>Booking Date</strong>
-                                    </p>
-                                  </td>
-                                  <td
-                                    align="right"
-                                    style="padding: 0; margin: 0"
-                                  >
-                                    <p
-                                      style="
-                                        margin: 0;
-                                        mso-line-height-rule: exactly;
-                                        font-family: arial, 'helvetica neue',
-                                          helvetica, sans-serif;
-                                        line-height: 21px;
-                                        letter-spacing: 0;
-                                        color: #333333;
-                                        font-size: 14px;
-                                      "
-                                    >
                                       <strong>
                                         <%= formatDate(bookingData.booking_date)
                                         %>
                                       </strong>
                                     </p>
                                   </td>
-                                </tr>
-
-                                <!-- Loop through slots for Booking Time -->
-                                <%
-                                bookingData.booking_time.forEach(function(time)
-                                { %>
-                                <tr>
-                                  <td
-                                    align="left"
-                                    style="padding: 0; margin: 0"
-                                  >
-                                    <p
-                                      style="
-                                        margin: 0;
-                                        mso-line-height-rule: exactly;
-                                        font-family: arial, 'helvetica neue',
-                                          helvetica, sans-serif;
-                                        line-height: 21px;
-                                        letter-spacing: 0;
-                                        color: #333333;
-                                        font-size: 14px;
-                                      "
-                                    >
-                                      <strong>Booking Time</strong>
-                                    </p>
-                                  </td>
                                   <td
                                     align="right"
                                     style="padding: 0; margin: 0"
@@ -1174,16 +1155,17 @@
                                         font-size: 14px;
                                       "
                                     >
-                                      <!-- Assuming the slot.time format is correct -->
                                       <strong>
-                                        <%= formatTime(time) %> - <%=
+                                        <%= bookingData.booking_time
+                                        .map(function (time) { return (
+                                        formatTime(time) + " - " +
                                         formatTime(getSlotDurationInHrs(time,
-                                        Number(bookingData.duration))) %>
+                                        Number(bookingData.duration))) ); })
+                                        .join(", ") %>
                                       </strong>
                                     </p>
                                   </td>
                                 </tr>
-                                <% }); %>
                               </table>
                             </td>
                           </tr>
@@ -1922,18 +1904,20 @@
                                         >
                                           <a
                                             target="_blank"
-                                            href=""
+                                            rel="noopener noreferrer"
+                                            href="<%= process.env.WEBSITE_URL %>"
                                             style="
                                               mso-line-height-rule: exactly;
                                               text-decoration: none;
-                                              font-family: arial,
-                                                'helvetica neue', helvetica,
+                                              font-family: Arial,
+                                                'Helvetica Neue', Helvetica,
                                                 sans-serif;
                                               display: block;
                                               color: #999999;
                                               font-size: 12px;
                                             "
-                                            >Visit Us
+                                          >
+                                            Visit Us
                                           </a>
                                         </td>
                                         <td
@@ -1952,7 +1936,7 @@
                                         >
                                           <a
                                             target="_blank"
-                                            href=""
+                                            href="<%= process.env.WEBSITE_URL %>privacy"
                                             style="
                                               mso-line-height-rule: exactly;
                                               text-decoration: none;
@@ -1982,7 +1966,7 @@
                                         >
                                           <a
                                             target="_blank"
-                                            href=""
+                                            href="<%= process.env.WEBSITE_URL %>terms"
                                             style="
                                               mso-line-height-rule: exactly;
                                               text-decoration: none;
