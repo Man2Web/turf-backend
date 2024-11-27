@@ -18,6 +18,7 @@ const convertCourtData = (data, courtName) => {
     includes,
     amenities,
     advance_pay,
+    coupon_data,
   } = data;
 
   // Build the court object
@@ -45,6 +46,7 @@ const convertCourtData = (data, courtName) => {
       price_of_additional_guests: add_price,
       advance_pay,
     },
+    coupon_data,
     includes,
     amenities,
     availability,

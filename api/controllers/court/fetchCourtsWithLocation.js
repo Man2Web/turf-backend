@@ -15,7 +15,6 @@ const fetchCourtsWithLocation = async (req, res) => {
     limit,
     offset,
   } = req.query;
-
   if (!location) {
     return res.status(400).json({ message: "Location is required" });
   }
@@ -33,6 +32,19 @@ const fetchCourtsWithLocation = async (req, res) => {
           'court_type', courts.court_type,
           'featured', courts.featured
         ) AS court_info,
+        jsonb_build_object(
+          'coupon_code', court_coupons.coupon_code,
+          'coupon_label', court_coupons.coupon_label,
+          'created_at', court_coupons.created_at,
+          'percentage', court_coupons.percentage,
+          'amount', court_coupons.amount,
+          'start_time', court_coupons.start_time,
+          'end_time', court_coupons.end_time,
+          'admin_id', court_coupons.admin_id,
+          'coupon_type', court_coupons.coupon_type,
+          'min_amount', court_coupons.min_amount,
+          'status', court_coupons.status
+        ) AS coupon_data,
         (
           SELECT COUNT(*) 
           FROM court_details 
@@ -47,6 +59,7 @@ const fetchCourtsWithLocation = async (req, res) => {
         ) AS total_count
       FROM court_details 
       JOIN courts ON courts.id = court_details.court_id
+      LEFT JOIN court_coupons ON courts.id = court_coupons.court_id
       WHERE city = $1 AND APPROVED = TRUE
       AND ($2::VARCHAR IS NULL OR courts.court_type = $2::VARCHAR)   -- Cast to VARCHAR
       AND ($3::VARCHAR IS NULL OR LOWER(courts.court_name) LIKE LOWER($3::VARCHAR))    -- Cast to VARCHAR
@@ -68,11 +81,6 @@ const fetchCourtsWithLocation = async (req, res) => {
       parseInt(limit), // Pagination limit as integer
       parseInt(offset), // Pagination offset as integer
     ]);
-
-    if (courtsData.rows.length === 0) {
-      res.status(404).json({ message: "No Courts found" });
-    }
-
     const updatedCourtsData = courtsData.rows.map((court) => {
       return convertCourtData(court);
     });

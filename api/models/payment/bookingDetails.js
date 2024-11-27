@@ -6,6 +6,7 @@ const db = require("../../config/database");
 const formatDate = require("../../services/formatDate");
 const formatTime = require("../../services/formatTime");
 const getSlotDurationInHrs = require("../../services/getSlotDuration");
+const { decimalNumber } = require("../../services/decimalNumber");
 
 const bookingDetails = async (transaction_id, pdf) => {
   const templatePath = path.join(
@@ -71,12 +72,12 @@ const bookingDetails = async (transaction_id, pdf) => {
     }
 
     const bookingData = bookingDetailsResult.rows[0];
-
     if (!pdf) {
       // Render the email template with the booking data
       const emailConfirmation = await ejs.renderFile(templatePath, {
         transaction_id,
         bookingData,
+        decimalNumber,
         formatDate,
         formatTime,
         getSlotDurationInHrs,
@@ -116,6 +117,7 @@ const bookingDetails = async (transaction_id, pdf) => {
         {
           transaction_id,
           bookingData: bookingData,
+          decimalNumber: decimalNumber,
           formatDate: formatDate,
           formatTime: formatTime,
           getSlotDurationInHrs: getSlotDurationInHrs,
