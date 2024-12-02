@@ -24,9 +24,10 @@ const status = async (req, res) => {
     },
   };
 
-  // CHECK PAYMENT TATUS
+  // CHECK PAYMENT STATUS
   try {
     const response = await axios.request(options);
+    console.log(response.data);
     if (response.data.success === true) {
       const transaction_id = response.data.data.merchantTransactionId;
       const { type, pgTransactionId, cardType, bankId } =

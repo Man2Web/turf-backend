@@ -1,6 +1,6 @@
 const db = require("../../config/database");
 const convertCourtData = require("../../services/convertCourtData");
-const getCurrentDay = require("../../services/getCurrentDay");
+const getSortOption = require("../../services/getSortOption");
 
 const fetchCourtsWithLocation = async (req, res) => {
   const { location } = req.params;
@@ -10,18 +10,17 @@ const fetchCourtsWithLocation = async (req, res) => {
     maxPrice,
     minGuest,
     maxGuest,
-    amenities,
     sportType,
     limit,
     offset,
+    selectedSort,
   } = req.query;
   if (!location) {
     return res.status(400).json({ message: "Location is required" });
   }
 
   try {
-    const formattedCourtName = courtName ? `%${courtName}%` : null; // Ensure it's either a wildcard string or null
-
+    const formattedCourtName = courtName ? `%${courtName}%` : null;
     const filteringQuery = `
     SELECT 
     court_details.*, 
@@ -67,6 +66,7 @@ const fetchCourtsWithLocation = async (req, res) => {
       AND ($5::BIGINT IS NULL OR price <= $5::bigint)                         -- Cast to BIGINT
       AND ($6::BIGINT IS NULL OR guests >= $6::bigint)                        -- Cast to BIGINT
       AND ($7::BIGINT IS NULL OR guests = $7::bigint)                         -- Cast to BIGINT
+      ${getSortOption((selectedSort && selectedSort.name) || "Featured")}
       LIMIT $8::integer OFFSET $9::integer;                           -- Cast to INTEGER
     `;
 
