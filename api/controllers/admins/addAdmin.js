@@ -1,6 +1,6 @@
 const db = require("../../config/database");
 const bcrypt = require("bcrypt");
-const { addAdminUser } = require("../../models/admin/addAdmin");
+const addAdminUser = require("../../models/admin/addAdmin");
 
 const addAdmin = async (req, res) => {
   const { username, email, password, phonenumber } = req.body;

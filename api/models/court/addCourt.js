@@ -1,18 +1,40 @@
-const db = require("../../config/database");
+const AWS = require("aws-sdk");
 const multer = require("multer");
-const path = require("path");
+const db = require("../../config/database");
 const sharp = require("sharp");
-const fs = require("fs");
 const { v4: uuid } = require("uuid");
 const convertAvailability = require("../../services/convertAvailability");
 
-// Configure multer to store files in memory as Buffer
-const storage = multer.memoryStorage(); // Store files in memory temporarily
+// Configure AWS S3
+const s3 = new AWS.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION,
+});
 
-const upload = multer({ storage: storage });
+// Multer S3 storage configuration
+const upload = multer({
+  storage: multer.memoryStorage(), // Store in memory temporarily
+});
 
+// Function to upload image to S3
+const uploadImageToS3 = async (buffer, key) => {
+  const optimizedBuffer = await sharp(buffer).webp().toBuffer();
+
+  const params = {
+    Bucket: process.env.AWS_S3_BUCKET_NAME,
+    Key: key,
+    Body: optimizedBuffer,
+    ContentType: "image/webp",
+    // ACL: "public-read", // Make the file publicly accessible
+  };
+
+  const uploadResult = await s3.upload(params).promise();
+  return uploadResult.Location; // Return the file URL
+};
+
+// Updated addCourt function
 const addCourt = async (req, res) => {
-  // Extract form fields and files
   let {
     courtName,
     venuePrice,
@@ -28,9 +50,7 @@ const addCourt = async (req, res) => {
     email,
   } = req.body;
 
-  // console.log(req.body);
   let rulesOfTheVenue;
-  // Parse JSON fields
   try {
     venuePrice = JSON.parse(venuePrice);
     courtIncludes = JSON.parse(courtIncludes);
@@ -48,15 +68,12 @@ const addCourt = async (req, res) => {
   const courtImages = req.files;
   const uploadedImages = [];
 
-  // Acquire a client from the pool
   const client = await db.pool.connect();
   const uniqueId = uuid();
-  const uploadDir = path.join(__dirname, `../../uploads/${userId}/${uniqueId}`);
 
   try {
-    await client.query("BEGIN"); // Start a transaction
+    await client.query("BEGIN");
 
-    // 1. Insert into courts
     const courtQuery = `
       INSERT INTO courts (admin_id, court_name, court_type, court_id)
       VALUES ($1, $2, $3, $4)
@@ -66,26 +83,14 @@ const addCourt = async (req, res) => {
     const courtResult = await client.query(courtQuery, courtValues);
     const courtId = courtResult.rows[0].id;
 
-    // Create the upload directory before processing images
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-
-    // Uploading images to server
+    // Upload images to S3
     for (const image of courtImages) {
       const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-      const fileName = `${uniqueSuffix}.webp`; // Create a unique filename with WebP format
-
-      // Compress and convert the image to WebP format
-      await sharp(image.buffer)
-        .resize(800, 600) // Resize to 800x600 pixels
-        .webp({ quality: 80 }) // Convert to WebP format with 80% quality
-        .toFile(path.join(uploadDir, fileName));
-
-      const imageUrl = `${fileName}`; // Store the relative path to the image
+      const fileName = `uploads/${userId}/${uniqueId}/${uniqueSuffix}.webp`; // S3 key
+      const imageUrl = await uploadImageToS3(image.buffer, fileName);
       uploadedImages.push(imageUrl);
     }
-
+    console.log(uploadedImages);
     // Insert court_details
     const courtDetailsQuery = `
       INSERT INTO court_details (
@@ -119,17 +124,10 @@ const addCourt = async (req, res) => {
       rulesOfTheVenue,
     ]);
 
-    // Commit the transaction
     await client.query("COMMIT");
     res.status(201).json({ message: "Court Request Successfully sent!" });
   } catch (error) {
     await client.query("ROLLBACK");
-    // Use fs.rm() with a callback to handle potential errors
-    fs.rm(uploadDir, { recursive: true, force: true }, (err) => {
-      if (err) {
-        console.error(`Error while removing directory ${uploadDir}:`, err);
-      }
-    });
     console.error(error);
     res.status(500).json({ error: "Failed to add court" });
   } finally {
@@ -137,5 +135,4 @@ const addCourt = async (req, res) => {
   }
 };
 
-// Export the route handler and multer middleware
 module.exports = { addCourt, upload };

@@ -24,9 +24,12 @@ const saveBookingData = async (
       const timeInHHMMSS = `${slot.time}:00`;
       timeSlotsArr.push(timeInHHMMSS);
     }
+
+    const currentDate = new Date().toISOString().split("T")[0]; // Gets YYYY-MM-DD format
+
     const bookingQuery = `
-    INSERT INTO bookings (admin_id, court_id, booking_date, booking_time, user_id, transaction_id, booking_detail_id, amount_paid, duration, pay_required, payment_mode)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    INSERT INTO bookings (admin_id, court_id, booking_date, booking_time, user_id, transaction_id, booking_detail_id, amount_paid, duration, pay_required, payment_mode, booked_on)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
     RETURNING id;
     `;
 
@@ -42,6 +45,7 @@ const saveBookingData = async (
       courtDuration,
       Number(amountTobePaid),
       true, // payment mode set to true for online
+      currentDate, // Add current date as the last parameter
     ];
     await db.query("BEGIN");
     await db.query(bookingQuery, bookingValues);
