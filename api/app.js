@@ -34,4 +34,8 @@ app.use("/court", courtRoutes);
 app.use("/payment", paymentRoutes);
 app.use("/booking", bookingRoutes);
 
+app.get("/", (req, res) => {
+  res.json({ message: "Working" });
+});
+
 module.exports = app;
